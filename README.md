@@ -6,6 +6,12 @@ An intelligent AI-powered platform that transforms employee learning by providin
 
 ![Data Workflow](data_workflow.png)
 
+## 🔄 Technical Workflow
+
+![Technical Workflow](technical_workflow.png)
+
+The above diagram illustrates the complete technical architecture and data flow of SkillSense AI, showing how user interactions trigger the AI recommendation pipeline and database operations.
+
 ## 🎯 Why SkillSense AI?
 
 ### For Organizations
@@ -26,35 +32,35 @@ An intelligent AI-powered platform that transforms employee learning by providin
 
 ## ✨ Key Features
 
-### 🤖 AI-Powered Intelligence
+### AI-Powered Intelligence
 
 - **Smart Recommendations**: Advanced LLM analysis provides personalized course suggestions with clear reasoning
 - **Behavioral Analysis**: Identifies individual learning patterns and preferences for optimal course matching
 - **Skill Gap Detection**: Automatically analyzes current skills against role requirements and career goals
 - **Quality Assurance**: Multi-agent validation ensures recommendations are relevant and achievable
 
-### 📈 Comprehensive Analytics
+### Comprehensive Analytics
 
 - **Performance Dashboards**: Real-time insights into learning progress, KPI tracking, and skill development
 - **Career Growth Insights**: Visualize promotion readiness and identify development opportunities
 - **Learning Statistics**: Track completion rates, scores, and learning achievements
 - **Skill Assessment**: Interactive skill mapping with proficiency levels and progress tracking
 
-### 🗺️ Strategic Learning Paths
+### Strategic Learning Paths
 
 - **AI-Generated Roadmaps**: Timeline-based learning sequences that build skills progressively
 - **Course Sequencing**: Logical progression from foundational to advanced topics
 - **Realistic Timelines**: Achievable learning schedules that consider workload and complexity
 - **Adaptive Planning**: Roadmaps adjust based on completion progress and changing requirements
 
-### 👤 Employee-Centric Design
+### Employee-Centric Design
 
 - **Complete Profiles**: Comprehensive view of skills, projects, learning history, and career goals
 - **Course Catalog**: Browse and discover courses with intelligent filtering and search
 - **Progress Tracking**: Monitor learning journey with detailed completion history and scores
 - **Mobile-Friendly**: Responsive design works seamlessly across all devices
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 ### Frontend Technology Stack
 
@@ -70,7 +76,7 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **LangGraph**: Advanced multi-agent system for AI recommendation pipeline
 - **OpenAI Integration**: Cutting-edge language models for intelligent analysis
 
-### 📊 Database Structure
+### Database Structure
 
 The system uses a comprehensive MySQL database with the following key tables:
 
@@ -84,43 +90,148 @@ The system uses a comprehensive MySQL database with the following key tables:
 
 The [database.sql](server/database.sql) file includes complete schema definitions and sample data for testing.
 
-### AI Recommendation Engine
+### Database Schema
 
-The system employs a sophisticated multi-agent architecture:
+#### Master Tables
 
-1. **Data Collection Agent**: Gathers comprehensive employee profiles, course catalogs, and performance data
-2. **Analysis Agent**: Performs deep behavioral analysis and identifies skill gaps using advanced algorithms
-3. **Recommendation Agent**: Generates personalized course suggestions and learning roadmaps
-4. **Validation Agent**: Ensures recommendation quality, relevance, and achievability
-5. **Output Agent**: Formats and delivers final recommendations with clear explanations
+**`m_roles`** - Organizational Roles and Requirements
 
-## 📁 Project Structure
-
-```
-skillsense-ai/
-├── client/                     # React Frontend Application
-│   ├── src/
-│   │   ├── components/        # Reusable UI Components
-│   │   ├── pages/             # Main Application Pages
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Analytics.jsx
-│   │   │   ├── Courses.jsx
-│   │   │   └── Profile.jsx
-│   │   ├── api/               # API Integration Layer
-│   │   ├── context/           # React Context Providers
-│   │   └── styles/            # CSS Stylesheets
-│   └── package.json
-├── server/                     # Python Backend Application
-│   ├── api.py                 # FastAPI Route Definitions
-│   ├── recommendation_engine.py # AI Recommendation Logic
-│   ├── chatbot.py            # AI Assistant Functionality
-│   ├── models.py             # Database Models
-│   ├── db.py                 # Database Connection
-│   ├── database.sql          # Database Schema & Sample Data
-│   └── requirements.txt
-└── data_workflow.png          # System Architecture Diagram
+```sql
+CREATE TABLE m_roles (
+    role_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(255) NOT NULL,
+    department VARCHAR(255),
+    required_skills TEXT,
+    skill_level_required JSON,
+    responsibilities TEXT,
+    career_progression_path TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
+**`m_emp`** - Employee Master Data
+
+```sql
+CREATE TABLE m_emp (
+    emp_id INT PRIMARY KEY,
+    emp_name VARCHAR(255) NOT NULL,
+    role_id INT,
+    department VARCHAR(255),
+    current_skills TEXT,
+    skill_proficiency JSON,
+    career_goals TEXT,
+    learning_preferences JSON,
+    years_of_experience INT,
+    education_background TEXT,
+    certifications TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES m_roles(role_id)
+);
+```
+
+**`m_courses`** - Course Catalog
+
+```sql
+CREATE TABLE m_courses (
+    course_id INT PRIMARY KEY AUTO_INCREMENT,
+    course_name VARCHAR(255) NOT NULL,
+    course_description TEXT,
+    category VARCHAR(255),
+    difficulty_level ENUM('Beginner', 'Intermediate', 'Advanced'),
+    duration_hours INT,
+    skills_covered TEXT,
+    prerequisites TEXT,
+    learning_outcomes TEXT,
+    rating DECIMAL(3,2),
+    provider VARCHAR(255),
+    course_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Transaction Tables
+
+**`t_emp_kpi`** - Employee Performance Metrics
+
+```sql
+CREATE TABLE t_emp_kpi (
+    kpi_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id INT,
+    evaluation_period VARCHAR(50),
+    performance_score DECIMAL(5,2),
+    goal_achievement_rate DECIMAL(5,2),
+    skill_improvement_score DECIMAL(5,2),
+    leadership_score DECIMAL(5,2),
+    collaboration_score DECIMAL(5,2),
+    innovation_score DECIMAL(5,2),
+    comments TEXT,
+    evaluator_id INT,
+    evaluation_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+);
+```
+
+**`t_course_completion`** - Learning History
+
+```sql
+CREATE TABLE t_course_completion (
+    completion_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id INT,
+    course_id INT,
+    enrollment_date DATE,
+    completion_date DATE,
+    completion_status ENUM('Enrolled', 'In Progress', 'Completed', 'Dropped'),
+    score DECIMAL(5,2),
+    time_spent_hours INT,
+    feedback TEXT,
+    certificate_earned BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
+    FOREIGN KEY (course_id) REFERENCES m_courses(course_id)
+);
+```
+
+**`t_emp_projects`** - Project Experience
+
+```sql
+CREATE TABLE t_emp_projects (
+    project_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id INT,
+    project_name VARCHAR(255),
+    project_description TEXT,
+    role_in_project VARCHAR(255),
+    technologies_used TEXT,
+    skills_utilized TEXT,
+    skills_gained TEXT,
+    project_duration_months INT,
+    project_start_date DATE,
+    project_end_date DATE,
+    project_success_rating DECIMAL(3,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+);
+```
+
+**`t_recommendation`** - AI Recommendations
+
+```sql
+CREATE TABLE t_recommendation (
+    recommendation_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id INT,
+    recommended_courses JSON,
+    skill_gap_analysis TEXT,
+    learning_roadmap JSON,
+    recommendation_reasoning TEXT,
+    priority_level ENUM('High', 'Medium', 'Low'),
+    estimated_completion_time VARCHAR(100),
+    expected_outcomes TEXT,
+    recommendation_score DECIMAL(5,2),
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Active', 'Completed', 'Outdated') DEFAULT 'Active',
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+);
+```
 <!-- ## Getting Started -->
 
 ### Prerequisites
@@ -129,6 +240,20 @@ skillsense-ai/
 - **Python** (v3.8 or higher)
 - **MySQL** (v8.0 or higher)
 - **OpenAI API Key**
+
+### Environment Setup
+**Configure `.env` file:**
+```env
+# Database Configuration
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=recom_dummy
+
+# API Keys
+GPT_API_KEY=your_openai_api_key_here
+```
 
 <!-- ### Quick Setup
 
@@ -202,16 +327,20 @@ skillsense-ai/
 
 ## API Reference
 
-### Core Endpoints
+### Endpoints
 
-| Endpoint                  | Method | Description                           |
-| ------------------------- | ------ | ------------------------------------- |
-| `/recommend`              | POST   | Generate personalized recommendations |
-| `/refresh_recommendation` | POST   | Refresh existing recommendations      |
-| `/employee/{emp_id}`      | GET    | Retrieve employee profile             |
-| `/courses`                | GET    | Get course catalog                    |
-| `/completion/{emp_id}`    | GET    | Get learning history                  |
-| `/kpi/{emp_id}`           | GET    | Get performance metrics               |
+| Endpoint                  | Method | Description                           | Parameters |
+| ------------------------- | ------ | ------------------------------------- | ---------- |
+| `/recommend`              | POST   | Generate personalized recommendations | `emp_id`, `goal` |
+| `/refresh_recommendation` | POST   | Refresh existing recommendations      | `emp_id`, `goal` |
+| `/employee/{emp_id}`      | GET    | Retrieve employee profile             | `emp_id` (path) |
+| `/courses`                | GET    | Get complete course catalog           | None |
+| `/roles`                  | GET    | Get all organizational roles          | None |
+| `/completion/{emp_id}`    | GET    | Get employee learning history         | `emp_id` (path) |
+| `/kpi/{emp_id}`           | GET    | Get employee performance metrics      | `emp_id` (path) |
+| `/projects/{emp_id}`      | GET    | Get employee project experience       | `emp_id` (path) |
+| `/chat`                   | POST   | AI chatbot interaction                | `emp_id`, `message` |
+
 
 ### Authentication
 
