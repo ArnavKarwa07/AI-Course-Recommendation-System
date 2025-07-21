@@ -1,0 +1,374 @@
+.roadmap-timeline {
+  width: 100%;
+  padding: 10px 0;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.timeline-header h2 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.timeline-header p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.timeline-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  padding: 30px 25px;
+  height: 320px;
+  box-sizing: border-box;
+}
+
+.timeline-line {
+  position: absolute;
+  top: 50%;
+  left: 25px;
+  right: 25px;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    #ff9800 0%,
+    #00bcd4 25%,
+    #2196f3 50%,
+    #9c27b0 75%,
+    #673ab7 100%
+  );
+  border-radius: 4px;
+  transform: translateY(-50%);
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 120px;
+  max-width: none;
+  height: 100%;
+  z-index: 2;
+}
+
+.timeline-item:nth-child(1),
+.timeline-item:nth-child(3),
+.timeline-item:nth-child(5) {
+  justify-content: flex-start;
+  padding-top: 10px;
+}
+
+.timeline-item:nth-child(2),
+.timeline-item:nth-child(4) {
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  flex-direction: column-reverse;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 55px;
+  height: 55px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 5px solid;
+  flex-shrink: 0;
+}
+
+.timeline-item:nth-child(1) .timeline-marker {
+  border-color: #ff9800;
+}
+
+.timeline-item:nth-child(2) .timeline-marker {
+  border-color: #00bcd4;
+}
+
+.timeline-item:nth-child(3) .timeline-marker {
+  border-color: #2196f3;
+}
+
+.timeline-item:nth-child(4) .timeline-marker {
+  border-color: #9c27b0;
+}
+
+.timeline-item:nth-child(n + 5) .timeline-marker {
+  border-color: #673ab7;
+}
+
+.order-number {
+  display: none;
+}
+
+.timeline-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 14px;
+  width: 100%;
+  max-width: 100%;
+  transition: all 0.3s ease;
+  border: 1px solid #e8e8e8;
+  text-align: center;
+  position: relative;
+}
+
+.timeline-item:nth-child(1),
+.timeline-item:nth-child(3),
+.timeline-item:nth-child(5) {
+  .timeline-card {
+    margin-bottom: 40px;
+  }
+}
+
+.timeline-item:nth-child(2),
+.timeline-item:nth-child(4) {
+  .timeline-card {
+    margin-top: 40px;
+  }
+}
+
+.timeline-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-card-header {
+  margin-bottom: 10px;
+}
+
+.course-name {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+  color: #2c3e50;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-reason {
+  color: #666;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.timeline-card-body {
+  margin-bottom: 10px;
+}
+
+.course-description {
+  color: #777;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0 0 6px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #888;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.icon-clock::before {
+  content: "⏱️";
+  font-size: 11px;
+}
+
+.timeline-card-footer {
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.start-course-btn {
+  width: 100%;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeline-item:nth-child(1) .start-course-btn {
+  background: #ff9800;
+}
+
+.timeline-item:nth-child(2) .start-course-btn {
+  background: #00bcd4;
+}
+
+.timeline-item:nth-child(3) .start-course-btn {
+  background: #2196f3;
+}
+
+.timeline-item:nth-child(4) .start-course-btn {
+  background: #9c27b0;
+}
+
+.timeline-item:nth-child(n + 5) .start-course-btn {
+  background: #673ab7;
+}
+
+.start-course-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: #888;
+  font-style: italic;
+  font-size: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .timeline-container {
+    gap: 25px;
+  }
+
+  .timeline-item {
+    min-width: 100px;
+  }
+
+  .timeline-marker {
+    width: 50px;
+    height: 50px;
+    border-width: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-container {
+    gap: 20px;
+    padding: 25px 20px;
+    height: 280px;
+  }
+
+  .timeline-item {
+    min-width: 80px;
+  }
+
+  .timeline-marker {
+    width: 45px;
+    height: 45px;
+    border-width: 4px;
+  }
+
+  .course-name {
+    font-size: 13px;
+  }
+
+  .timeline-card {
+    padding: 12px;
+  }
+
+  .timeline-line {
+    height: 6px;
+  }
+
+  .timeline-item:nth-child(1),
+  .timeline-item:nth-child(3),
+  .timeline-item:nth-child(5) {
+    .timeline-card {
+      margin-bottom: 35px;
+    }
+  }
+
+  .timeline-item:nth-child(2),
+  .timeline-item:nth-child(4) {
+    .timeline-card {
+      margin-top: 35px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-container {
+    gap: 15px;
+    height: 260px;
+    padding: 20px 15px;
+  }
+
+  .timeline-item {
+    min-width: 60px;
+  }
+
+  .timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .course-name {
+    font-size: 12px;
+  }
+
+  .timeline-card {
+    padding: 10px;
+  }
+
+  .timeline-line {
+    height: 5px;
+  }
+
+  .timeline-item:nth-child(1),
+  .timeline-item:nth-child(3),
+  .timeline-item:nth-child(5) {
+    .timeline-card {
+      margin-bottom: 30px;
+    }
+  }
+
+  .timeline-item:nth-child(2),
+  .timeline-item:nth-child(4) {
+    .timeline-card {
+      margin-top: 30px;
+    }
+  }
+}
