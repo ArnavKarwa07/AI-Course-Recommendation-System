@@ -157,7 +157,7 @@ LEARNING PROGRESS:
 INSIGHTS:
 {rec_summary}
 
-When suggesting courses or next steps, present them naturally in conversation, mentioning course names and explaining why they would be helpful based on the employee's goals and current progress.
+When suggesting courses or next steps, present them in bullet points, mentioning course names and explaining why they would be helpful based on the employee's goals and current progress.
 """
 
 def chat_node(state: ChatState):
