@@ -70,6 +70,20 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **LangGraph**: Advanced multi-agent system for AI recommendation pipeline
 - **OpenAI Integration**: Cutting-edge language models for intelligent analysis
 
+### 📊 Database Structure
+
+The system uses a comprehensive MySQL database with the following key tables:
+
+- **`m_roles`**: Master data for organizational roles and skill requirements
+- **`m_emp`**: Employee profiles with skills, preferences, and career goals
+- **`m_courses`**: Course catalog with metadata and skill mappings
+- **`t_emp_kpi`**: Employee performance tracking and KPI metrics
+- **`t_course_completion`**: Learning history and completion records
+- **`t_emp_projects`**: Project experience and skill utilization
+- **`t_recommendation`**: AI-generated recommendations and analysis
+
+The [database.sql](server/database.sql) file includes complete schema definitions and sample data for testing.
+
 ### AI Recommendation Engine
 
 The system employs a sophisticated multi-agent architecture:
@@ -102,6 +116,7 @@ skillsense-ai/
 │   ├── chatbot.py            # AI Assistant Functionality
 │   ├── models.py             # Database Models
 │   ├── db.py                 # Database Connection
+│   ├── database.sql          # Database Schema & Sample Data
 │   └── requirements.txt
 └── data_workflow.png          # System Architecture Diagram
 ```
@@ -192,7 +207,7 @@ skillsense-ai/
 | Endpoint                  | Method | Description                           |
 | ------------------------- | ------ | ------------------------------------- |
 | `/recommend`              | POST   | Generate personalized recommendations |
-| `/refresh_recommendation` | POST   | Update existing recommendations       |
+| `/refresh_recommendation` | POST   | Refresh existing recommendations      |
 | `/employee/{emp_id}`      | GET    | Retrieve employee profile             |
 | `/courses`                | GET    | Get course catalog                    |
 | `/completion/{emp_id}`    | GET    | Get learning history                  |
