@@ -6,12 +6,6 @@ An intelligent AI-powered platform that transforms employee learning by providin
 
 ![Data Workflow](data_workflow.png)
 
-## 🔄 Technical Workflow
-
-![Technical Workflow](technical_workflow.png)
-
-The above diagram illustrates the complete technical architecture and data flow of SkillSense AI, showing how user interactions trigger the AI recommendation pipeline and database operations.
-
 ## 🎯 Why SkillSense AI?
 
 ### For Organizations
@@ -75,6 +69,20 @@ The above diagram illustrates the complete technical architecture and data flow 
 - **MySQL Database**: Robust relational database for data persistence and integrity
 - **LangGraph**: Advanced multi-agent system for AI recommendation pipeline
 - **OpenAI Integration**: Cutting-edge language models for intelligent analysis
+
+### AI Recommendation Engine
+
+The system employs a sophisticated multi-agent architecture:
+
+1. **Data Collection Agent**: Gathers comprehensive employee profiles, course catalogs, and performance data
+2. **Analysis Agent**: Performs deep behavioral analysis and identifies skill gaps using advanced algorithms
+3. **Recommendation Agent**: Generates personalized course suggestions and learning roadmaps
+4. **Validation Agent**: Ensures recommendation quality, relevance, and achievability
+5. **Output Agent**: Formats and delivers final recommendations with clear explanations
+
+![Technical Workflow](technical_workflow.png)
+
+The above diagram illustrates the complete technical architecture and data flow of SkillSense AI, showing how user interactions trigger the AI recommendation pipeline and database operations.
 
 ### Database Structure
 
@@ -232,6 +240,7 @@ CREATE TABLE t_recommendation (
     FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
 );
 ```
+
 <!-- ## Getting Started -->
 
 ### Prerequisites
@@ -242,7 +251,9 @@ CREATE TABLE t_recommendation (
 - **OpenAI API Key**
 
 ### Environment Setup
+
 **Configure `.env` file:**
+
 ```env
 # Database Configuration
 DB_USER=root
@@ -255,103 +266,61 @@ DB_NAME=recom_dummy
 GPT_API_KEY=your_openai_api_key_here
 ```
 
-<!-- ### Quick Setup
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/your-org/skillsense-ai.git
-   cd skillsense-ai
-   ```
-
-2. **Frontend Setup**
-
-   ```bash
-   cd client
-   npm install
-   npm run dev
-   ```
-
-3. **Backend Setup**
-
-   ```bash
-   cd server
-   pip install -r requirements.txt
-   # Configure .env file with database and API credentials
-   python main.py
-   ```
-
-4. **Database Setup**
-   - Create MySQL database
-   - Configure connection in `server/.env`
-   - Run database migrations -->
-
-<!-- ## 🎯 How to Use SkillSense AI
-
-### For Employees
-
-1. **Login & Profile Setup**
-
-   - Access the system with your employee ID
-   - Complete your profile with skills, interests, and career goals
-
-2. **Explore Your Dashboard**
-
-   - View AI-generated learning roadmaps
-   - See personalized course recommendations
-   - Track your learning progress and achievements
-
-3. **Browse Courses**
-
-   - Explore the complete course catalog
-   - Use intelligent filters to find relevant courses
-   - View AI explanations for why courses are recommended
-
-4. **Monitor Your Growth**
-   - Access detailed analytics on your learning journey
-   - Track KPI improvements and skill development
-   - Plan your career progression with data insights
-
-### For Administrators
-
-1. **Employee Analytics**
-
-   - Monitor organizational learning trends
-   - Identify skill gaps across teams
-   - Track training effectiveness and ROI
-
-2. **Course Management**
-   - Manage course catalog and metadata
-   - Monitor course popularity and completion rates
-   - Analyze recommendation patterns -->
-
 ## API Reference
 
 ### Endpoints
 
-| Endpoint                  | Method | Description                           | Parameters |
-| ------------------------- | ------ | ------------------------------------- | ---------- |
-| `/recommend`              | POST   | Generate personalized recommendations | `emp_id`, `goal` |
-| `/refresh_recommendation` | POST   | Refresh existing recommendations      | `emp_id`, `goal` |
-| `/employee/{emp_id}`      | GET    | Retrieve employee profile             | `emp_id` (path) |
-| `/courses`                | GET    | Get complete course catalog           | None |
-| `/roles`                  | GET    | Get all organizational roles          | None |
-| `/completion/{emp_id}`    | GET    | Get employee learning history         | `emp_id` (path) |
-| `/kpi/{emp_id}`           | GET    | Get employee performance metrics      | `emp_id` (path) |
-| `/projects/{emp_id}`      | GET    | Get employee project experience       | `emp_id` (path) |
+| Endpoint                  | Method | Description                           | Parameters          |
+| ------------------------- | ------ | ------------------------------------- | ------------------- |
+| `/recommend`              | POST   | Generate personalized recommendations | `emp_id`, `goal`    |
+| `/refresh_recommendation` | POST   | Refresh existing recommendations      | `emp_id`, `goal`    |
+| `/employee/{emp_id}`      | GET    | Retrieve employee profile             | `emp_id` (path)     |
+| `/courses`                | GET    | Get complete course catalog           | None                |
+| `/roles`                  | GET    | Get all organizational roles          | None                |
+| `/completion/{emp_id}`    | GET    | Get employee learning history         | `emp_id` (path)     |
+| `/kpi/{emp_id}`           | GET    | Get employee performance metrics      | `emp_id` (path)     |
+| `/projects/{emp_id}`      | GET    | Get employee project experience       | `emp_id` (path)     |
 | `/chat`                   | POST   | AI chatbot interaction                | `emp_id`, `message` |
-
 
 ### Authentication
 
 All endpoints require valid employee authentication via the login system.
 
-<!-- ## Security & Privacy
+## Important Functions
 
-- **Data Protection**: All employee data is encrypted and securely stored
-- **Access Control**: Role-based permissions ensure data privacy
-- **API Security**: Secure authentication and authorization mechanisms
-- **Compliance**: Adheres to data protection regulations and best practices -->
+### Core Recommendation Engine
+
+| Function                   | File                                                        | Description                                        | Usage                                   |
+| -------------------------- | ----------------------------------------------------------- | -------------------------------------------------- | --------------------------------------- |
+| `build_graph()`            | [recommendation_engine.py](server/recommendation_engine.py) | Creates LangGraph workflow for AI recommendations  | Multi-agent pipeline orchestration      |
+| `run_recommendation()`     | [recommendation.py](server/recommendation.py)               | Main function to generate/retrieve recommendations | Handles caching and database operations |
+| `refresh_recommendation()` | [recommendation.py](server/recommendation.py)               | Forces regeneration of recommendations             | Bypasses cache for fresh analysis       |
+
+### Data Collection & Analysis
+
+| Function              | File                                                        | Description                                       | Usage                                       |
+| --------------------- | ----------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
+| `collect_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | Gathers employee profile, KPIs, projects, courses | First step in recommendation pipeline       |
+| `analyze_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | AI analysis of employee behavior and skill gaps   | Identifies learning patterns and needs      |
+| `generate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Creates personalized course recommendations       | Uses LLM to match courses to employee needs |
+| `validate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Quality assurance for AI recommendations          | Ensures output validity and relevance       |
+
+### Chatbot & AI Processing
+
+| Function                 | File                            | Description                                       | Usage                       |
+| ------------------------ | ------------------------------- | ------------------------------------------------- | --------------------------- |
+| `process_chat_message()` | [chatbot.py](server/chatbot.py) | Main chatbot processing with streaming response   | Real-time AI conversations  |
+| `get_employee_data()`    | [chatbot.py](server/chatbot.py) | Retrieves comprehensive employee context for chat | Personalized chat responses |
+| `build_system_prompt()`  | [chatbot.py](server/chatbot.py) | Creates context-aware prompts for LLM             | Dynamic prompt generation   |
+| `chat_node()`            | [chatbot.py](server/chatbot.py) | LangGraph node for streaming chat responses       | Graph-based chat processing |
+
+### Utility Functions
+
+| Function                 | File                                                        | Description                                           | Usage                                 |
+| ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------- |
+| `extract_json_block()`   | [extract_json.py](server/extract_json.py)                   | Extracts JSON from LLM text responses                 | Parses AI-generated structured data   |
+| `stream_chat_response()` | [api.py](server/api.py)                                     | Generator for streaming chat responses                | Real-time response delivery           |
+| `serialize()`            | [recommendation_engine.py](server/recommendation_engine.py) | Converts database objects to JSON-serializable format | Data transformation for API responses |
 
 ## 🔧 Performance & Scalability
 
@@ -392,4 +361,107 @@ All endpoints require valid employee authentication via the login system.
 
 ---
 
-**SkillSense AI** - Transforming employee learning through intelligent recommendations and personalized skill development paths.
+## Sample Case 
+
+### Employee Profile: ID 101 (Arjun Verma)
+
+#### 1. Employee Data Collection
+
+**Employee Master Data (`m_emp`)**
+| emp_id | name | role_id | role | dept | skills (skill : proficiency) | learning_preferences | interests | career_goal | join_date | last_promotion_date | experience (in months) | languages |
+|--------|------|---------|------|------|------------------------------|---------------------|-----------|-------------|-----------|-------------------|----------------------|-----------|
+| 101 | Arjun Verma | 1 | Software Engineer | Engineering | {"Git": 4, "Python": 4} | Online | AI, Web Dev | Senior Dev | 2021-07-10 | 2023-07-10 | 36 | English, Hindi |
+
+**Role Requirements (`m_roles`)**
+| role_id | role | dept | job_level | skills_required | avg_promotion_time (months) |
+|---------|------|------|-----------|-----------------|---------------------------|
+| 1 | Software Engineer | Engineering | Junior | {"Git": 3, "Python": 3} | 24 |
+
+#### 2. Performance Analytics
+
+**KPI Metrics (`t_emp_kpi`)**
+| emp_id | month | kpi_metric | kpi_score | review |
+|--------|-------|------------|-----------|---------|
+| 101 | 2024-01-01 | Feedback | 4.5 | Peers praised timely delivery |
+| 101 | 2024-02-01 | Code Quality | 4.2 | Clean modular code |
+| 101 | 2024-03-01 | Bug Resolution | 4.6 | Fixed critical issues fast |
+| 101 | 2024-04-01 | Team Collaboration | 4.0 | Great sync with frontend |
+| 101 | 2024-05-01 | Documentation | 3.9 | Needs slight improvement |
+
+#### 3. Learning History
+
+**Course Completion (`t_course_completion`)**
+| emp_id | course_id | start_date | end_date | duration (months) | expected_duration (months) | score |
+|--------|-----------|------------|----------|-------------------|---------------------------|-------|
+| 101 | 201 | 2024-01-01 | 2024-02-01 | 1.8 | 1 | 4.6 |
+
+#### 4. Project Experience
+
+**Project History (`t_emp_projects`)**
+| project_id | project_name | emp_id | project_role | duration (months) | date | tech_stack | skills_used |
+|------------|--------------|--------|--------------|-------------------|------|------------|-------------|
+| 1001 | Inventory Automation Tool | 101 | Backend Developer | 5 | 2023-07-15 | Python, Flask | {"SQL": 3, "Python": 4} |
+| 1002 | AI Chatbot Integration | 101 | Lead Developer | 4 | 2026-01-20 | Python, Rasa | {"NLP": 3, "Python": 4} |
+
+#### 5. AI Analysis Results
+
+**Analysis Output:**
+
+```json
+{
+  "skill_gaps": ["SQL", "NLP", "Documentation"],
+  "behavior_traits": [
+    "timely delivery",
+    "problem-solving",
+    "team collaboration",
+    "attention to detail"
+  ],
+  "learning_preferences": ["Online"]
+}
+```
+
+#### 6. Available Courses
+
+**Course Catalog (`m_courses`)**
+| course_id | name | category | desc | skills | format | level | prerequisite_skills | duration (months) |
+|-----------|------|----------|------|--------|--------|-------|-------------------|------------------|
+| 201 | Intro to Python | Programming | Learn Python basics | {"Python": 3} | Online | Beginner | null | 1 |
+| 202 | Advanced Java | Programming | Deep dive into Java | {"Java": 4} | Online | Advanced | {"Java": 3} | 2 |
+
+#### 7. AI Recommendations
+
+**Generated Output:**
+
+```json
+[
+  {
+    "desc": "SQL queries",
+    "order": 1,
+    "c_name": "SQL for Data Analysts",
+    "reason": "Identified skill gap in SQL",
+    "duration": 1.0,
+    "course_id": "205"
+  },
+  {
+    "desc": "Full ML course",
+    "order": 2,
+    "c_name": "Machine Learning A-Z",
+    "reason": "Supports career goal"
+    ...
+  }
+]
+```
+
+**Recommendations stored in (`t_recommendation`)**
+| recommendation_id | emp_id | goal | output | analysis (skill_gap, behaviour_traits, learning_preferences) | valid | validation_summary | last_updated_time |
+|------------------|--------|------|--------|-----------------------------------------------------------|-------|-------------------|------------------|
+| 31 | 101 | roadmap | [{"desc": "SQL queries", "order": 1, "c_name": "SQL for Data Analysts", "reason": "Identified skill gap in SQL", "duration": 1.0, "course_id": "205"}, {"desc": "Full ML course", "order": 2, "c_name": "Machine Learning A-Z", "reason": "Supports career goal..."}] | {"skill_gaps": ["Documentation", "SQL", "NLP"], "behavior_traits": ["timely delivery", "clean code", "team collaboration"], "learning_preferences": ["Online"]} | 0 | {"valid": false, "reason": "Course progression issues"} | 2025-07-22 23:22:50 |
+| 41 | 101 | courses | [{"name": "SQL for Data Analysts", "reason": "Addresses SQL skill gap", "course_id": 205}, {"name": "Machine Learning A-Z", "reason": "NLP skill enhancement", "course_id": 203}, {"name": "Data Analysis with Excel", "reason": "Improves documentation skills..."}] | {"skill_gaps": ["SQL", "NLP", "Documentation"], "behavior_traits": ["timely delivery", "problem-solving", "team collaboration", "attention to detail"], "learning_preferences": ["Online"]} | 1 | {"valid": true, "reason": "All courses are relevant"} | 2025-07-22 23:22:10 |
+
+#### 8. User Interface Output
+
+The system generates personalized learning recommendations displayed through intuitive interfaces:
+
+![Roadmap UI](roadmap_ui_example.png)
+
+![Recommendations UI](recommended_courses_ui_example.png)
