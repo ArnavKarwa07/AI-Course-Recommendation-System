@@ -2,9 +2,9 @@
 /* eslint-disable no-unused-vars */
 import {
   useRoadmapRecommendationAPI,
-  useRefreshRoadmapAPI,
-  useCourseRecommendationAPI,
-  useRefreshCoursesAPI,
+  // useRefreshRoadmapAPI,
+  // useCourseRecommendationAPI,
+  // useRefreshCoursesAPI,
   useEmployeeDetailsAPI,
   useCourseCompletionAPI,
   useKPIAPI,
@@ -14,23 +14,23 @@ import {
 } from "../api/apis";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-import ProfileHeader from "../components/ProfileHeader";
+// import ProfileHeader from "../components/ProfileHeader";
 import Skills from "../components/Skills";
-import Projects from "../components/Projects";
-import PersonalInformation from "../components/PersonalInformation";
-import LearningProfile from "../components/LearningProfile";
+// import Projects from "../components/Projects";
+// import PersonalInformation from "../components/PersonalInformation";
+// import LearningProfile from "../components/LearningProfile";
 import LearningStats from "../components/LearningStats";
-import CompletedCourses from "../components/CompletedCourses";
-import AIRoadmap from "../components/AIRoadmap";
-import RecommendedCourseCard from "../components/RecommendedCourseCard";
+// import CompletedCourses from "../components/CompletedCourses";
+// import AIRoadmap from "../components/AIRoadmap";
+// import RecommendedCourseCard from "../components/RecommendedCourseCard";
 import KPIDashboard from "../components/KPIDashboard";
 
 export default function Analytics() {
   const { empId } = useAuth();
   const { recommendRoadmap } = useRoadmapRecommendationAPI();
-  const { refreshRoadmap } = useRefreshRoadmapAPI();
-  const { recommendCourses } = useCourseRecommendationAPI();
-  const { refreshCourses } = useRefreshCoursesAPI();
+  // const { refreshRoadmap } = useRefreshRoadmapAPI();
+  // const { recommendCourses } = useCourseRecommendationAPI();
+  // const { refreshCourses } = useRefreshCoursesAPI();
   const { getEmployeeDetails } = useEmployeeDetailsAPI();
   const { getCourseCompletion } = useCourseCompletionAPI();
   const { getKPI } = useKPIAPI();
@@ -45,8 +45,6 @@ export default function Analytics() {
   const [courses, setCourses] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [roadmapLoading, setRoadmapLoading] = useState(false);
-  const [coursesLoading, setCoursesLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,7 +68,7 @@ export default function Analytics() {
           getCoursesAPI(),
           getRolesAPI(),
           recommendRoadmap(),
-          recommendCourses(),
+          // recommendCourses(),
         ]);
 
         setEmployeeDetails(employeeResponse?.data || employeeResponse);
@@ -118,7 +116,9 @@ export default function Analytics() {
     const roadmapGaps = Array.isArray(roadmapData?.analysis?.skill_gaps)
       ? roadmapData.analysis.skill_gaps
       : [];
-    const recommendedGaps = Array.isArray(recommendedCourses?.analysis?.skill_gaps)
+    const recommendedGaps = Array.isArray(
+      recommendedCourses?.analysis?.skill_gaps
+    )
       ? recommendedCourses.analysis.skill_gaps
       : [];
 
@@ -131,52 +131,6 @@ export default function Analytics() {
     if (!kpiData || !Array.isArray(kpiData)) return 0;
     const total = kpiData.reduce((sum, kpi) => sum + kpi.kpi_score, 0);
     return (total / kpiData.length).toFixed(1);
-  };
-
-  const getPromotionProgress = () => {
-    const timeSince = getTimeSinceLastPromotion();
-    const cycle = getPromotionCycle();
-    return Math.min((timeSince / cycle) * 100, 100);
-  };
-
-  const handleRefreshRoadmap = async () => {
-    try {
-      setRoadmapLoading(true);
-      const response = await refreshRoadmap();
-      setRoadmapData(response?.data || response || null);
-    } catch (err) {
-      console.error("Error refreshing roadmap:", err);
-    } finally {
-      setRoadmapLoading(false);
-    }
-  };
-
-  const handleRefreshCourses = async () => {
-    try {
-      setCoursesLoading(true);
-      const response = await refreshCourses();
-      setRecommendedCourses(response?.data || response || []);
-    } catch (err) {
-      console.error("Error refreshing courses:", err);
-    } finally {
-      setCoursesLoading(false);
-    }
-  };
-
-  // Get full course details for recommended courses
-  const getRecommendedCoursesWithDetails = () => {
-    if (!recommendedCourses?.output || !courses) return [];
-
-    return recommendedCourses.output.map((recCourse) => {
-      const fullCourse = courses.find(
-        (course) => course.course_id === recCourse.course_id
-      );
-      return {
-        ...recCourse,
-        ...fullCourse,
-        reason: recCourse.reason, // Keep the recommendation reason
-      };
-    });
   };
 
   if (loading) {
@@ -197,45 +151,6 @@ export default function Analytics() {
     );
   }
 
-  // Loading component for individual sections
-  const SectionLoader = ({ message }) => (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "3rem",
-        flexDirection: "column",
-        gap: "1rem",
-        background: "#f9fafb",
-        borderRadius: "8px",
-        border: "1px solid #e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "2rem",
-          animation: "spin 1s linear infinite",
-        }}
-      >
-        🤖
-      </div>
-      <p style={{ color: "#6b7280", margin: 0, fontSize: "1rem" }}>
-        {message}
-      </p>
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </div>
-  );
-
   return (
     <div
       style={{
@@ -244,29 +159,6 @@ export default function Analytics() {
         margin: "0 auto",
       }}
     >
-      {/* Header */}
-      {/* <div style={{ marginBottom: "2rem" }}>
-        <h1
-          style={{
-            fontSize: "2.5rem",
-            fontWeight: "700",
-            color: "#1f2937",
-            margin: "0 0 0 0",
-          }}
-        >
-          Analytics Dashboard
-        </h1>
-        <p
-          style={{
-            color: "#6b7280",
-            fontSize: "1.1rem",
-            margin: 0,
-          }}
-        >
-          Comprehensive insights into your performance and growth
-        </p>
-      </div> */}
-      {/* Key Metrics Cards */}
       <div
         style={{
           display: "grid",
@@ -276,123 +168,310 @@ export default function Analytics() {
           textAlign: "center",
         }}
       >
-        <div className="card">
-          <h3 style={{ margin: "0 0 1rem 0", color: "#1f2937" }}>
-            Average KPI Score
-          </h3>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
-            <div
+        {/* KPI Average Score */}
+        <div
+          className="card"
+          style={{
+            background: "#ffffff",
+            color: "#374151",
+            border: "1px solid #9d9d9dff",
+            position: "relative",
+            overflow: "hidden",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: "-20px",
+              right: "-20px",
+              width: "80px",
+              height: "80px",
+              background: "rgba(59, 130, 246, 0.05)",
+              borderRadius: "50%",
+              zIndex: 0,
+            }}
+          />
+          <div style={{ position: "relative", zIndex: 1, padding: "1.5rem" }}>
+            <h3
               style={{
-                fontSize: "3rem",
-                fontWeight: "700",
-                color:
-                  getAverageKPI() >= 4.0
-                    ? "#10b981"
-                    : getAverageKPI() >= 3.0
-                    ? "#f59e0b"
-                    : "#ef4444",
+                margin: 0,
+                fontWeight: "600",
+                fontSize: "1.1rem",
+                color: "#6b7280",
+                marginBottom: "1rem",
               }}
             >
-              {getAverageKPI()}
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
-                out of 5.0
-              </p>
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
-                Based on {kpiData?.length || 0} metrics
-              </p>
+              Performance Score
+            </h3>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "3.5rem",
+                  fontWeight: "800",
+                  color: "#1f2937",
+                }}
+              >
+                {getAverageKPI()}
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#6b7280" }}>
+                  out of 5.0
+                </p>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "#9ca3af" }}>
+                  Based on {kpiData?.length || 0} metrics
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <h3 style={{ margin: "0 0 1rem 0", color: "#1f2937" }}>Skill Gaps</h3>
-          {getSkillGaps().length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", justifyContent: "center" }}>
-              {getSkillGaps().map((gap, index) => (
-                  <span
-                    key={index}
-                    style={{
-                      background: "#fef3c7",
-                      color: "#92400e",
-                      padding: "0.25rem 0.5rem",
-                      borderRadius: "12px",
-                      fontSize: "0.75rem",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {gap}
-                  </span>
-                ))}
-            </div>
-          ) : (
-            <p
-              style={{
-                color: "#10b981",
-                fontWeight: "600",
-                margin: 0,
-                fontSize: "1.1rem",
-              }}
-            >
-              No skill gaps detected!
-            </p>
-          )}
-        </div>
-
-        <div className="card">
-          <h3 style={{ margin: "0 0 1rem 0", color: "#1f2937" }}>
-            Learning Activity
-          </h3>
+        {/* Skill Gaps */}
+        <div
+          className="card"
+          style={{
+            background: "#ffffff",
+            color: "#374151",
+            border:
+              getSkillGaps().length > 0
+                ? "1px solid #fbbf24"
+                : "1px solid #10b981",
+            position: "relative",
+            overflow: "hidden",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            minHeight: "200px",
+          }}
+        >
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-around",
-              alignItems: "center",
+              position: "absolute",
+              top: "-15px",
+              right: "-15px",
+              width: "60px",
+              height: "60px",
+              background:
+                getSkillGaps().length > 0
+                  ? "rgba(251, 191, 36, 0.1)"
+                  : "rgba(16, 185, 129, 0.1)",
+              borderRadius: "50%",
+              zIndex: 0,
             }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "700",
-                  color: "#3b82f6",
-                }}
-              >
-                {courseCompletion?.length || 0}
+          />
+          <div style={{ position: "relative", zIndex: 1, padding: "1.5rem" }}>
+            <h3
+              style={{
+                margin: 0,
+                fontWeight: "600",
+                fontSize: "1.1rem",
+                color: "#6b7280",
+                marginBottom: "1rem",
+              }}
+            >
+              Skill Analysis
+            </h3>
+            {getSkillGaps().length > 0 ? (
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "#f59e0b",
+                  }}
+                >
+                  {getSkillGaps().length}
+                </div>
+                <p
+                  style={{
+                    margin: "0 0 1rem 0",
+                    fontSize: "0.9rem",
+                    color: "#6b7280",
+                  }}
+                >
+                  Skill gaps detected
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "0.4rem",
+                    justifyContent: "center",
+                    maxHeight: "60px",
+                    overflow: "hidden",
+                  }}
+                >
+                  {getSkillGaps()
+                    .slice(0)
+                    .map((gap, index) => (
+                      <span
+                        key={index}
+                        style={{
+                          background: "#fef3c7",
+                          color: "#92400e",
+                          padding: "0.2rem 0.6rem",
+                          borderRadius: "12px",
+                          fontSize: "0.7rem",
+                          fontWeight: "500",
+                          border: "1px solid #fde68a",
+                        }}
+                      >
+                        {gap}
+                      </span>
+                    ))}
+                </div>
               </div>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b7280" }}>
-                Completed
-              </p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "700",
-                  color: "#10b981",
-                }}
-              >
-                {roadmapData?.output?.length || 0}
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: "2.5rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "#10b981",
+                  }}
+                >
+                  0
+                </div>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#6b7280" }}>
+                  No skill gaps detected
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "0.8rem",
+                    color: "#9ca3af",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  You're on track
+                </p>
               </div>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b7280" }}>
-                In Roadmap
-              </p>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "700",
-                  color: "#f59e0b",
-                }}
-              >
-                {recommendedCourses?.output?.length || 0}
+            )}
+          </div>
+        </div>
+
+        {/* AI Behavior Traits */}
+        <div
+          className="card"
+          style={{
+            background: "#ffffff",
+            color: "#374151",
+            border: "1px solid #bc2cffff",
+            position: "relative",
+            overflow: "hidden",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            minHeight: "200px",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: "-25px",
+              right: "-25px",
+              width: "90px",
+              height: "90px",
+              background: "rgba(139, 92, 246, 0.05)",
+              borderRadius: "50%",
+              zIndex: 0,
+            }}
+          />
+          <div style={{ position: "relative", zIndex: 1, padding: "1.5rem" }}>
+            <h3
+              style={{
+                margin: 0,
+                fontWeight: "600",
+                fontSize: "1.1rem",
+                color: "#6b7280",
+                marginBottom: "1rem",
+              }}
+            >
+              AI Identified Traits
+            </h3>
+            {roadmapData?.analysis?.behavior_traits &&
+            roadmapData.analysis.behavior_traits.length > 0 ? (
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "#8b5cf6",
+                  }}
+                >
+                  {roadmapData.analysis.behavior_traits.length}
+                </div>
+                <p
+                  style={{
+                    margin: "0 0 1rem 0",
+                    fontSize: "0.9rem",
+                    color: "#6b7280",
+                  }}
+                >
+                  Traits identified
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "0.4rem",
+                    justifyContent: "center",
+                    maxHeight: "60px",
+                    overflow: "hidden",
+                  }}
+                >
+                  {roadmapData.analysis.behavior_traits
+                    .slice(0)
+                    .map((trait, index) => (
+                      <span
+                        key={index}
+                        style={{
+                          background: "#f3f4f6",
+                          color: "#6b7280",
+                          padding: "0.2rem 0.6rem",
+                          borderRadius: "12px",
+                          fontSize: "0.7rem",
+                          fontWeight: "500",
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        {trait}
+                      </span>
+                    ))}
+                </div>
               </div>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b7280" }}>
-                Recommended
-              </p>
-            </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "1rem 0" }}>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    marginBottom: "0.5rem",
+                    color: "#9ca3af",
+                  }}
+                >
+                  ...
+                </div>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#6b7280" }}>
+                  Analyzing behavior
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "0.8rem",
+                    color: "#9ca3af",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  AI insights coming soon
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -408,123 +487,17 @@ export default function Analytics() {
       >
         {/* Left Column */}
         <div>
-          <Skills employeeData={employeeDetails} />
-          <Projects projectsData={projects} />
           <LearningStats completedCourses={courseCompletion} />
         </div>
 
         {/* Right Column */}
         <div>
-          <CompletedCourses completedCourses={courseCompletion} />
+          <Skills employeeData={employeeDetails} />
         </div>
       </div>
 
       {/* KPI Dashboard - Full Width */}
       <KPIDashboard kpiData={kpiData} />
-
-      {/* AI Roadmap Section */}
-      <div style={{ marginTop: "2rem" }}>
-        {roadmapLoading ? (
-          <SectionLoader message="Refreshing your AI roadmap..." />
-        ) : (
-          <AIRoadmap
-            roadmapData={roadmapData}
-            isLoading={false}
-            onRefresh={handleRefreshRoadmap}
-            onGenerate={handleRefreshRoadmap}
-          />
-        )}
-      </div>
-
-      {/* Recommended Courses */}
-      <div className="card" style={{ marginTop: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <h2
-            style={{
-              fontWeight: "600",
-              color: "#1f2937",
-              margin: 0,
-            }}
-          >
-            AI Recommended Courses
-          </h2>
-          <button
-            onClick={handleRefreshCourses}
-            disabled={coursesLoading}
-            style={{
-              background: "transparent",
-              border: "1px solid #d1d5db",
-              borderRadius: "6px",
-              padding: "0.5rem",
-              cursor: coursesLoading ? "not-allowed" : "pointer",
-              color: coursesLoading ? "#9ca3af" : "#6b7280",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: coursesLoading ? 0.6 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!coursesLoading) {
-                e.target.style.background = "#f9fafb";
-                e.target.style.borderColor = "#9ca3af";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!coursesLoading) {
-                e.target.style.background = "transparent";
-                e.target.style.borderColor = "#d1d5db";
-              }
-            }}
-            title="Refresh Course Recommendations"
-          >
-            {coursesLoading ? (
-              <span style={{ animation: "spin 1s linear infinite" }}>🔄</span>
-            ) : (
-              "🔄"
-            )}
-          </button>
-        </div>
-
-        {coursesLoading ? (
-          <SectionLoader message="Refreshing course recommendations..." />
-        ) : recommendedCourses?.output && recommendedCourses.output.length > 0 ? (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {getRecommendedCoursesWithDetails().map((course, index) => (
-              <RecommendedCourseCard key={index} course={course} />
-            ))}
-          </div>
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "2rem",
-              color: "#6b7280",
-              background: "#f9fafb",
-              borderRadius: "8px",
-            }}
-          >
-            <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🤖</div>
-            <p>
-              No course recommendations available. Try refreshing to get new
-              suggestions!
-            </p>
-          </div>
-        )}
-      </div>
 
       {/* Career Growth Insights */}
       <div
@@ -539,14 +512,15 @@ export default function Analytics() {
         }}
       >
         {/* Decorative background shapes */}
-        {/* <div
+        <div
           style={{
             position: "absolute",
             top: "-40px",
             right: "-40px",
             width: "120px",
             height: "120px",
-            background: "radial-gradient(circle, #10b98122 60%, transparent 100%)",
+            background:
+              "radial-gradient(circle, #10b98122 60%, transparent 100%)",
             zIndex: 0,
             borderRadius: "50%",
           }}
@@ -558,11 +532,12 @@ export default function Analytics() {
             left: "-30px",
             width: "80px",
             height: "80px",
-            background: "radial-gradient(circle, #3b82f622 60%, transparent 100%)",
+            background:
+              "radial-gradient(circle, #3b82f622 60%, transparent 100%)",
             zIndex: 0,
             borderRadius: "50%",
           }}
-        /> */}
+        />
         <h2
           style={{
             fontWeight: "700",
@@ -615,10 +590,23 @@ export default function Analytics() {
             >
               🧑‍💼
             </span>
-            <h4 style={{ margin: "0 0 0.5rem 0", color: "#374151", fontWeight: 600 }}>
+            <h4
+              style={{
+                margin: "0 0 0.5rem 0",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
               Current Role
             </h4>
-            <p style={{ margin: 0, fontWeight: "600", color: "#1f2937", fontSize: "1.1rem" }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: "600",
+                color: "#1f2937",
+                fontSize: "1.1rem",
+              }}
+            >
               {employeeDetails?.role}
             </p>
             <p style={{ margin: 0, fontSize: "0.95rem", color: "#6b7280" }}>
@@ -652,10 +640,23 @@ export default function Analytics() {
             >
               🎯
             </span>
-            <h4 style={{ margin: "0 0 0.5rem 0", color: "#374151", fontWeight: 600 }}>
+            <h4
+              style={{
+                margin: "0 0 0.5rem 0",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
               Career Goal
             </h4>
-            <p style={{ margin: 0, fontWeight: "700", color: "#10b981", fontSize: "1.1rem" }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: "700",
+                color: "#10b981",
+                fontSize: "1.1rem",
+              }}
+            >
               {employeeDetails?.career_goal}
             </p>
             <p style={{ margin: 0, fontSize: "0.95rem", color: "#6b7280" }}>
@@ -689,10 +690,23 @@ export default function Analytics() {
             >
               ⏳
             </span>
-            <h4 style={{ margin: "0 0 0.5rem 0", color: "#374151", fontWeight: 600 }}>
+            <h4
+              style={{
+                margin: "0 0 0.5rem 0",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
               Experience
             </h4>
-            <p style={{ margin: 0, fontWeight: "700", color: "#3b82f6", fontSize: "1.1rem" }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: "700",
+                color: "#3b82f6",
+                fontSize: "1.1rem",
+              }}
+            >
               {employeeDetails?.experience} months
             </p>
             <p style={{ margin: 0, fontSize: "0.95rem", color: "#6b7280" }}>
@@ -726,11 +740,25 @@ export default function Analytics() {
             >
               📈
             </span>
-            <h4 style={{ margin: "0 0 0.5rem 0", color: "#374151", fontWeight: 600 }}>
+            <h4
+              style={{
+                margin: "0 0 0.5rem 0",
+                color: "#374151",
+                fontWeight: 600,
+              }}
+            >
               Next Promotion
             </h4>
-            <p style={{ margin: 0, fontWeight: "700", color: "#f59e0b", fontSize: "1.1rem" }}>
-              ~{Math.max(0, getPromotionCycle() - getTimeSinceLastPromotion())} months
+            <p
+              style={{
+                margin: 0,
+                fontWeight: "700",
+                color: "#f59e0b",
+                fontSize: "1.1rem",
+              }}
+            >
+              ~{Math.max(0, getPromotionCycle() - getTimeSinceLastPromotion())}{" "}
+              months
             </p>
             <p style={{ margin: 0, fontSize: "0.95rem", color: "#6b7280" }}>
               Estimated Timeline

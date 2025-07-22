@@ -97,7 +97,7 @@ export default function LearningStats({ completedCourses }) {
               textAlign: "center",
             }}
           >
-            <strong>Latest:</strong>{" "}
+            <strong>Latest course:</strong>{" "}
             {completedCourses[completedCourses.length - 1]?.course_name}
           </div>
         </>
