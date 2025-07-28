@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Courses from "./pages/Courses";
 import Analytics from "./pages/Analytics";
+import YourTeam from "./pages/YourTeam";
 
 import "./styles/globals.css";
 import "./styles/layout.css";
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/your-team" element={<YourTeam />} />
                 </Routes>
               </App>
             }

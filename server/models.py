@@ -58,6 +58,7 @@ class Employee(Base):
     last_promotion_date  = Column(Date)
     experience           = Column(Integer)       # months
     languages            = Column(String(100))
+    manager_ids          = Column(JSON, nullable=True)  
 
     role_details = relationship("Role", back_populates="employees")
     kpis         = relationship("KPI", back_populates="employee")

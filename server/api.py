@@ -126,3 +126,14 @@ def stream_chat_response(emp_id: int, message: str):
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
     finally:
         yield f"data: {json.dumps({'done': True})}\n\n"
+
+@router.get("/team/{manager_id}")
+def get_team_members(manager_id: int, db: Session = Depends(get_db)):
+    # Query employees where manager_id JSON array contains the given manager_id
+    team_members = db.query(Employee).filter(
+        Employee.manager_ids.like(f'%{manager_id}%')
+    ).all()
+    
+    if not team_members:
+        return {"data": [], "message": "No team members found"}
+    return {"data": team_members}
