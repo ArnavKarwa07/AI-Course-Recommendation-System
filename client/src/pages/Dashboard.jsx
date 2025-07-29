@@ -1,10 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useRoadmapRecommendationAPI, useRefreshRoadmapAPI } from "../api/apis";
+import {
+  useRoadmapRecommendationAPI,
+  useRefreshRoadmapAPI,
+  useOngoingCoursesAPI,
+} from "../api/apis";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect, useCallback } from "react";
 import WelcomeHeader from "../components/WelcomeHeader";
 import StatsCards from "../components/StatsCards";
-import LearningJourney from "../components/LearningJourney";
+import CurrentLearningJourney from "../components/CurrentLearningJourney";
 import AIRoadmap from "../components/AIRoadmap";
 import LearningStreak from "../components/LearningStreak";
 import Achievements from "../components/Achievements";
@@ -13,9 +17,16 @@ export default function Dashboard() {
   const { empId } = useAuth();
   const { recommendRoadmap } = useRoadmapRecommendationAPI();
   const { refreshRoadmap } = useRefreshRoadmapAPI();
+  const { getOngoingCourses } = useOngoingCoursesAPI();
+
   const [roadmapData, setRoadmapData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [roadmapLoaded, setRoadmapLoaded] = useState(false);
+
+  // New state for ongoing courses
+  const [ongoingCoursesData, setOngoingCoursesData] = useState([]);
+  const [ongoingCoursesLoading, setOngoingCoursesLoading] = useState(true);
+  const [ongoingCoursesError, setOngoingCoursesError] = useState(null);
 
   // Fetch roadmap when empId is available
   useEffect(() => {
@@ -23,6 +34,41 @@ export default function Dashboard() {
       fetchRoadmap();
     }
   }, [empId]);
+
+  // Fetch ongoing courses when empId is available
+  useEffect(() => {
+    if (empId) {
+      fetchOngoingCourses();
+    }
+  }, [empId]);
+
+  const fetchOngoingCourses = useCallback(async () => {
+    if (!empId) {
+      console.log("No empId available for ongoing courses yet, waiting...");
+      return;
+    }
+
+    setOngoingCoursesLoading(true);
+    setOngoingCoursesError(null);
+
+    try {
+      console.log("Fetching ongoing courses for empId:", empId);
+      const response = await getOngoingCourses();
+      console.log("Ongoing courses data received:", response);
+
+      if (response.data && response.data.length > 0) {
+        setOngoingCoursesData(response.data);
+      } else {
+        setOngoingCoursesData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching ongoing courses:", error);
+      setOngoingCoursesError("Failed to load ongoing courses");
+      setOngoingCoursesData([]);
+    } finally {
+      setOngoingCoursesLoading(false);
+    }
+  }, [empId, getOngoingCourses]);
 
   const fetchRoadmap = useCallback(async () => {
     if (!empId) {
@@ -100,7 +146,11 @@ export default function Dashboard() {
       <div className="dashboard-grid">
         {/* Left Column - Learning Journey and AI Roadmap */}
         <div>
-          <LearningJourney />
+          <CurrentLearningJourney
+            ongoingCoursesData={ongoingCoursesData}
+            loading={ongoingCoursesLoading}
+            error={ongoingCoursesError}
+          />
           <AIRoadmap
             roadmapData={roadmapData}
             isLoading={isLoading}

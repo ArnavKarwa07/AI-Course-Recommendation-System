@@ -238,3 +238,20 @@ export async function getTeamMembersAPI(managerId) {
     throw error;
   }
 }
+
+export function useOngoingCoursesAPI() {
+  const { empId } = useAuth();
+
+  const getOngoingCourses = async () => {
+    try {
+      const response = await http.get(`/ongoing_courses/${empId}`);
+      console.log("Ongoing courses data:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching ongoing courses:", error);
+      throw error;
+    }
+  };
+
+  return { getOngoingCourses };
+}

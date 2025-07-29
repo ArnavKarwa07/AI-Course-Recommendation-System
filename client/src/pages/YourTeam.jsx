@@ -458,7 +458,7 @@ export default function YourTeam() {
   const projectAnalytics = getProjectAnalytics();
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 0" }}>
+    <div style={{ margin: "0 0" }}>
       {/* Navigation */}
       <div
         style={{
@@ -469,6 +469,7 @@ export default function YourTeam() {
           marginBottom: "2rem",
           display: "flex",
           gap: "0.5rem",
+          justifyContent: "space-around",
           flexWrap: "wrap",
         }}
       >

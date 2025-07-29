@@ -125,3 +125,12 @@ class Recommendation(Base):
     last_updated_time  = Column(DateTime)
 
     employee = relationship("Employee", back_populates="recommendations")
+
+class OngoingCourse(Base):
+    __tablename__ = "t_ongoing_courses"
+    
+    emp_id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, primary_key=True)
+    course_name = Column(String(100))
+    start_date = Column(Date)
+    current_progress = Column(Integer)

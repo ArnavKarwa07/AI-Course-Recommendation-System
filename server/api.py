@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from recommendation import run_recommendation, refresh_recommendation
-from models import RecommendationRequest, Employee, Course, Role, KPI, Project, CourseCompletion
+from models import RecommendationRequest, Employee, Course, Role, KPI, Project, CourseCompletion, OngoingCourse
 from sqlalchemy.orm import Session
 from db import get_db
 import json
-from chatbot import process_chat_message  # Add this import
+from chatbot import process_chat_message
 from fastapi.responses import JSONResponse, StreamingResponse
 from datetime import datetime
 
@@ -66,7 +66,6 @@ def get_course_completion(emp_id: int, db: Session = Depends(get_db)):
             "end_date": completion.end_date.isoformat() if completion.end_date else None,
             "duration": completion.duration,
             "expected_duration": completion.expected_duration,
-            "score": completion.score,
             "course_name": course.name,
             "course_category": course.category,
             "course_description": course.desc,
@@ -137,3 +136,35 @@ def get_team_members(manager_id: int, db: Session = Depends(get_db)):
     if not team_members:
         return {"data": [], "message": "No team members found"}
     return {"data": team_members}
+
+@router.get("/ongoing_courses/{emp_id}")
+def get_ongoing_courses(emp_id: int, db: Session = Depends(get_db)):
+    ongoing_courses = (
+        db.query(OngoingCourse, Course)
+        .join(Course, OngoingCourse.course_id == Course.course_id)
+        .filter(OngoingCourse.emp_id == emp_id)
+        .all()
+    )
+    
+    if not ongoing_courses:
+        return {"data": [], "message": "No ongoing courses found for this employee"}
+    
+    # Format the data for the frontend
+    formatted_data = []
+    for ongoing, course in ongoing_courses:
+        formatted_data.append({
+            "emp_id": ongoing.emp_id,
+            "course_id": ongoing.course_id,
+            "course_name": ongoing.course_name,
+            "start_date": ongoing.start_date.isoformat() if ongoing.start_date else None,
+            "current_progress": ongoing.current_progress,
+            "course_category": course.category,
+            "course_description": course.desc,
+            "course_skills": course.skills,
+            "course_format": course.format,
+            "course_level": course.level,
+            "course_duration": course.duration,
+        })
+    
+    return {"data": formatted_data}
+
