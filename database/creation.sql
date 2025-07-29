@@ -1,5 +1,5 @@
 -- Create the database
-DROP DATABASE recom_dummy;-- 
+-- DROP DATABASE recom_dummy;
 CREATE DATABASE IF NOT EXISTS recom_dummy;
 USE recom_dummy;
 
@@ -97,17 +97,27 @@ CREATE TABLE t_ongoing_courses (
     FOREIGN KEY (course_id) REFERENCES m_courses(course_id)
 );
 
--- Create employee projects table
-CREATE TABLE t_emp_projects (
+-- Create projects master table
+CREATE TABLE m_projects (
     project_id INT PRIMARY KEY,
     project_name VARCHAR(100),
-    emp_id INT,
-    project_role VARCHAR(100),
+    client VARCHAR(100),
     duration FLOAT,
-    date DATE,
-    tech_stack VARCHAR(100),
-    skills_used JSON,
-    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+    start_date DATE,
+    skills JSON,
+    status VARCHAR(50),
+    manager_ids JSON
+);
+
+-- Create employee projects table
+CREATE TABLE t_emp_projects (
+    tep_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id INT,
+    project_id INT,
+    role VARCHAR(100),
+    skills JSON,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
+    FOREIGN KEY (project_id) REFERENCES m_projects(project_id)
 );
 
 -- Create recommendations table

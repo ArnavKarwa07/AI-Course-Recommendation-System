@@ -6,6 +6,8 @@ export default function AIRoadmap({
   onRefresh,
   onGenerate,
 }) {
+  console.log("AIRoadmap received roadmapData:", roadmapData);
+
   return (
     <div className="card">
       <div
@@ -37,8 +39,16 @@ export default function AIRoadmap({
             SkillSense AI Curated
           </span>
           {roadmapData &&
-            roadmapData.output &&
-            Array.isArray(roadmapData.output) && (
+            (() => {
+              // Check for all possible roadmap structures
+              const hasRoadmap =
+                (roadmapData.output?.roadmap &&
+                  Array.isArray(roadmapData.output.roadmap)) ||
+                (roadmapData.output && Array.isArray(roadmapData.output)) ||
+                (roadmapData.roadmap && Array.isArray(roadmapData.roadmap)) ||
+                Array.isArray(roadmapData);
+              return hasRoadmap;
+            })() && (
               <button
                 onClick={onRefresh}
                 style={{
@@ -80,56 +90,137 @@ export default function AIRoadmap({
           <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🤖</div>
           <p>AI is analyzing your learning path...</p>
         </div>
-      ) : roadmapData &&
-        roadmapData.output &&
-        Array.isArray(roadmapData.output) ? (
-        <div>
-          {/* Warning message for invalid roadmap */}
-          {!roadmapData.valid && (
-            <div
-              style={{
-                background: "#fef3c7",
-                border: "1px solid #f59e0b",
-                borderRadius: "8px",
-                padding: "0.75rem",
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <span style={{ fontSize: "1.25rem" }}>⚠️</span>
-              <div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.75rem",
-                    color: "#92400e",
-                  }}
-                >
-                  This roadmap may not be fully accurate
+      ) : roadmapData ? (
+        // Check for different data structures
+        (() => {
+          // Enhanced structure detection
+          const hasValidRoadmap =
+            (roadmapData.output?.roadmap &&
+              Array.isArray(roadmapData.output.roadmap)) ||
+            (roadmapData.output && Array.isArray(roadmapData.output)) ||
+            (roadmapData.roadmap && Array.isArray(roadmapData.roadmap)) ||
+            Array.isArray(roadmapData);
+
+          if (roadmapData.error) {
+            return (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "2rem",
+                  background: "#fee2e2",
+                  borderRadius: "8px",
+                  border: "1px solid #fecaca",
+                }}
+              >
+                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+                  ⚠️
+                </div>
+                <p style={{ color: "#dc2626", fontWeight: "500" }}>
+                  {roadmapData.error}
                 </p>
               </div>
+            );
+          }
+
+          if (hasValidRoadmap) {
+            // Determine the correct roadmap data structure to pass
+            let roadmapToPass;
+
+            if (
+              roadmapData.output?.roadmap &&
+              Array.isArray(roadmapData.output.roadmap)
+            ) {
+              // Case 1: Nested structure - pass just the roadmap array
+              roadmapToPass = roadmapData.output.roadmap;
+            } else if (
+              roadmapData.output &&
+              Array.isArray(roadmapData.output)
+            ) {
+              // Case 2: Output is directly an array
+              roadmapToPass = roadmapData.output;
+            } else if (
+              roadmapData.roadmap &&
+              Array.isArray(roadmapData.roadmap)
+            ) {
+              // Case 3: Direct roadmap property
+              roadmapToPass = roadmapData.roadmap;
+            } else if (Array.isArray(roadmapData)) {
+              // Case 4: Data is directly an array
+              roadmapToPass = roadmapData;
+            }
+
+            return (
+              <div>
+                {/* Warning message for invalid roadmap */}
+                {!roadmapData.valid && (
+                  <div
+                    style={{
+                      background: "#fef3c7",
+                      border: "1px solid #f59e0b",
+                      borderRadius: "8px",
+                      padding: "0.75rem",
+                      marginBottom: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+                    <div>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "0.75rem",
+                          color: "#92400e",
+                        }}
+                      >
+                        This roadmap may not be fully accurate
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <RoadmapTimeline roadmapData={roadmapToPass} />
+              </div>
+            );
+          }
+
+          // If no valid roadmap structure found, show debug info
+          return (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "2rem",
+                background: "#f3f4f6",
+                borderRadius: "8px",
+                color: "#6b7280",
+              }}
+            >
+              <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+                🔍
+              </div>
+              <p style={{ marginBottom: "1rem" }}>
+                Roadmap data received but structure not recognized
+              </p>
+              <button
+                onClick={onGenerate}
+                style={{
+                  marginTop: "1rem",
+                  background: "#3b82f6",
+                  color: "white",
+                  padding: "0.75rem 1.5rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                }}
+              >
+                Try Generate Again
+              </button>
             </div>
-          )}
-          <RoadmapTimeline roadmapData={roadmapData.output} />
-        </div>
-      ) : roadmapData && roadmapData.error ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "2rem",
-            background: "#fee2e2",
-            borderRadius: "8px",
-            border: "1px solid #fecaca",
-          }}
-        >
-          <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</div>
-          <p style={{ color: "#dc2626", fontWeight: "500" }}>
-            {roadmapData?.error ||
-              "An error occurred while loading the roadmap"}
-          </p>
-        </div>
+          );
+        })()
       ) : (
         <div
           style={{

@@ -1,6 +1,6 @@
 export default function Skills({ employeeData }) {
   const getSkillLevel = (level) => {
-    if (level == 5) return "Expert";
+    if (level == 4) return "Expert";
     if (level >= 3) return "Advanced";
     if (level >= 2) return "Intermediate";
     return "Beginner";

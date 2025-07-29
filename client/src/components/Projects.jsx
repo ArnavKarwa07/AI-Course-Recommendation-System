@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export default function Projects({ projectsData }) {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -9,6 +10,8 @@ export default function Projects({ projectsData }) {
   };
 
   const getProjectStatus = (dateString, projectDuration = 0) => {
+    if (!dateString) return "Unknown";
+
     const projectDate = new Date(dateString);
     const now = new Date();
     const projectEndDate = new Date(projectDate);
@@ -16,7 +19,8 @@ export default function Projects({ projectsData }) {
       projectEndDate.getMonth() +
         (Number.isFinite(projectDuration) ? projectDuration : 0)
     );
-    if (now > projectDate && now < projectEndDate) return "Current";
+
+    if (now > projectDate && now < projectEndDate) return "Ongoing";
     if (projectDate > now) return "Upcoming";
     return "Completed";
   };
@@ -25,8 +29,8 @@ export default function Projects({ projectsData }) {
     switch (status) {
       case "Upcoming":
         return "#f0f9ff";
-      case "Current":
-        return "#fef3c7";
+      case "Ongoing":
+        return "#fcf4d6ff";
       case "Completed":
         return "#f0fdf4";
       default:
@@ -38,8 +42,8 @@ export default function Projects({ projectsData }) {
     switch (status) {
       case "Upcoming":
         return { backgroundColor: "#dbeafe", color: "#1e40af" };
-      case "Current":
-        return { backgroundColor: "#fef3c7", color: "#92400e" };
+      case "Ongoing":
+        return { backgroundColor: "#ffec9fff", color: "#92400e" };
       case "Completed":
         return { backgroundColor: "#dcfce7", color: "#166534" };
       default:
@@ -47,10 +51,22 @@ export default function Projects({ projectsData }) {
     }
   };
 
+  // Parse tech stack if it's a string
+  const parseTechStack = (techStack) => {
+    if (typeof techStack === "string") {
+      try {
+        return JSON.parse(techStack);
+      } catch (e) {
+        return techStack; // Return as string if parsing fails
+      }
+    }
+    return techStack;
+  };
+
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Projects</h3>
-      {projectsData.length > 0 ? (
+      {projectsData && projectsData.length > 0 ? (
         <div
           style={{
             display: "flex",
@@ -60,6 +76,7 @@ export default function Projects({ projectsData }) {
         >
           {projectsData.map((project, index) => {
             const status = getProjectStatus(project.date, project.duration);
+            const techStack = parseTechStack(project.tech_stack);
 
             return (
               <div
@@ -100,18 +117,34 @@ export default function Projects({ projectsData }) {
                     {status}
                   </span>
                 </div>
+
+                {project.client && (
+                  <div style={{ marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
+                      Client: <strong>{project.client}</strong>
+                    </span>
+                  </div>
+                )}
+
                 <div style={{ marginBottom: "0.5rem" }}>
                   <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
                     Role: <strong>{project.project_role}</strong>
                   </span>
                 </div>
-                {project.tech_stack && (
+
+                {/* Tech Stack - Handle both string and object formats */}
+                {techStack && (
                   <div style={{ marginBottom: "0.5rem" }}>
                     <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
-                      Tech Stack: {project.tech_stack}
+                      Tech Stack:{" "}
+                      {typeof techStack === "object"
+                        ? Object.keys(techStack).join(", ")
+                        : techStack}
                     </span>
                   </div>
                 )}
+
+                {/* Skills Used */}
                 {project.skills_used &&
                   Object.keys(project.skills_used).length > 0 && (
                     <div style={{ marginBottom: "0.5rem" }}>
@@ -142,6 +175,7 @@ export default function Projects({ projectsData }) {
                       </div>
                     </div>
                   )}
+
                 <div
                   style={{
                     display: "flex",
@@ -152,6 +186,7 @@ export default function Projects({ projectsData }) {
                 >
                   <span>Start Date: {formatDate(project.date)}</span>
                   <span>Duration: {project.duration} months</span>
+                  {project.status && <span>Status: {project.status}</span>}
                 </div>
               </div>
             );

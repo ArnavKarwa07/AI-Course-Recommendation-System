@@ -1,9 +1,12 @@
 import "./RoadmapTimeline.css";
 
 const RoadmapTimeline = ({ roadmapData }) => {
+  // Check if roadmapData has the new structure with roadmap array or is directly an array
+  const roadmapArray = roadmapData?.roadmap || roadmapData || [];
+
   // Sort courses by order to ensure proper timeline sequence
-  const sortedCourses = roadmapData
-    ? [...roadmapData].sort((a, b) => a.order - b.order)
+  const sortedCourses = Array.isArray(roadmapArray)
+    ? [...roadmapArray].sort((a, b) => (a.order || 0) - (b.order || 0))
     : [];
 
   const formatDuration = (months) => {
@@ -15,13 +18,10 @@ const RoadmapTimeline = ({ roadmapData }) => {
       <div className="timeline-container">
         <div className="timeline-line"></div>
         {sortedCourses.map((course, index) => (
-          <div
-            key={index}
-            className="timeline-item"
-          >
+          <div key={course.course_id || index} className="timeline-item">
             <div className="timeline-card">
               <div className="timeline-card-header">
-                <h3 className="course-name">{course.c_name}</h3>
+                <h3 className="course-name">{course.c_name || course.name}</h3>
                 <span className="course-reason">{course.reason}</span>
               </div>
               <div className="timeline-card-body">
@@ -33,7 +33,6 @@ const RoadmapTimeline = ({ roadmapData }) => {
                   </div>
                 </div>
               </div>
-
               <div className="timeline-card-footer">
                 <button className="start-course-btn">Start Course</button>
               </div>
@@ -41,7 +40,6 @@ const RoadmapTimeline = ({ roadmapData }) => {
           </div>
         ))}
       </div>
-
       {sortedCourses.length === 0 && (
         <div className="timeline-empty">
           <p>No roadmap data available</p>

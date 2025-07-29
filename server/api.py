@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from recommendation import run_recommendation, refresh_recommendation
-from models import RecommendationRequest, Employee, Course, Role, KPI, Project, CourseCompletion, OngoingCourse
+from models import *
 from sqlalchemy.orm import Session
 from db import get_db
 import json
@@ -89,12 +89,33 @@ def get_kpi(emp_id: int, db: Session = Depends(get_db)):
 
 @router.get("/projects/{emp_id}")
 def get_projects(emp_id: int, db: Session = Depends(get_db)):
-    projects = db.query(Project).filter(Project.emp_id == emp_id).all()
-    if not projects:
-        raise HTTPException(status_code=404, detail="Projects not found for this employee")
-    return {
-        "data": projects,
-    }
+    try:
+        # Get projects with project details
+        projects = (
+            db.query(EmployeeProject, Project)
+            .join(Project, EmployeeProject.project_id == Project.project_id)
+            .filter(EmployeeProject.emp_id == emp_id)
+            .all()
+        )
+        
+        project_data = []
+        for emp_project, project in projects:
+            project_data.append({
+                "emp_id": emp_project.emp_id,
+                "project_id": emp_project.project_id,
+                "project_name": project.project_name,
+                "client": project.client,
+                "project_role": emp_project.role,
+                "duration": float(project.duration) if project.duration else 0,
+                "date": project.start_date.isoformat() if project.start_date else None,
+                "tech_stack": project.skills if project.skills else {},
+                "skills_used": emp_project.skills if emp_project.skills else {},
+                "status": project.status
+            })
+        
+        return {"data": project_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post('/chat')

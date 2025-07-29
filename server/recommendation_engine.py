@@ -18,9 +18,6 @@ from extract_json import extract_json_block
 # Load environment variables
 load_dotenv()
 
-# Groq LLM
-# llm = ChatGroq(model="gemma2-9b-it", api_key=os.getenv("GROQ_API_KEY"), http_client=httpx.Client(verify=False))
-
 # GPT LLM
 llm = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("GPT_API_KEY"), http_client=httpx.Client(verify=False))
 
@@ -59,21 +56,19 @@ class AgentState(TypedDict):
     is_valid: bool
     validation_summary: str
 
-# Serialize data for JSON (handles date and decimal)
 def serialize(obj):
-    if isinstance(obj, dict):
-        return {k: serialize(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [serialize(v) for v in obj]
-    elif isinstance(obj, (datetime.date, datetime.datetime)):
+    """Handle JSON serialization for complex objects"""
+    if isinstance(obj, (datetime.date, datetime.datetime)):
         return obj.isoformat()
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
-    else:
-        return obj
+    elif isinstance(obj, dict):
+        return {k: serialize(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize(item) for item in obj]
+    return obj
 
-
-# Step 1: Collect user data
+# Step 1: Collect user data (Updated for current schema)
 def collect_user_data(state: AgentState) -> AgentState:
     emp_id = state["emp_id"]
     
@@ -81,29 +76,51 @@ def collect_user_data(state: AgentState) -> AgentState:
     db, cursor = get_db_cursor()
     
     try:
+        # Get employee data
         cursor.execute("SELECT * FROM m_emp WHERE emp_id = %s", (emp_id,))
         emp = cursor.fetchone()
+        
+        if not emp:
+            raise ValueError(f"Employee with ID {emp_id} not found")
 
+        # Get role details
         cursor.execute("SELECT * FROM m_roles WHERE role_id = %s", (emp["role_id"],))
         emp["role_details"] = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM t_emp_kpi WHERE emp_id = %s", (emp_id,))
+        # Get KPI data (using current schema)
+        cursor.execute("SELECT * FROM t_emp_kpi WHERE emp_id = %s ORDER BY month DESC", (emp_id,))
         emp["kpis"] = cursor.fetchall()
 
-        cursor.execute("SELECT * FROM t_emp_projects WHERE emp_id = %s", (emp_id,))
+        # Get project data with project details (using current schema)
+        cursor.execute("""
+            SELECT ep.*, p.project_name, p.client, p.duration as project_duration, 
+                   p.start_date as project_start_date, p.status as project_status
+            FROM t_emp_projects ep
+            JOIN m_projects p ON ep.project_id = p.project_id
+            WHERE ep.emp_id = %s
+        """, (emp_id,))
         emp["projects"] = cursor.fetchall()
 
+        # Get course completion data (using current schema)
         cursor.execute("SELECT * FROM t_course_completion WHERE emp_id = %s", (emp_id,))
         emp["courses"] = cursor.fetchall()
 
+        # Get ongoing courses (using current schema)
+        cursor.execute("""
+            SELECT oc.*, c.name as course_name, c.category
+            FROM t_ongoing_courses oc
+            JOIN m_courses c ON oc.course_id = c.course_id
+            WHERE oc.emp_id = %s
+        """, (emp_id,))
+        emp["ongoing_courses"] = cursor.fetchall()
+
         state["user_data"] = emp
-        # print("User data collected:", emp)
         return state
     finally:
         cursor.close()
         db.close()
 
-# Step 2: Analyze user
+# Step 2: Analyze user (Updated for current schema fields)
 def analyze_user_data(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
 
@@ -132,10 +149,9 @@ Employee Data:
 """
     result = llm.invoke([HumanMessage(content=prompt)])
     state["llm_analysis"] = result.content
-    # print("LLM Analysis:", state["llm_analysis"])
     return state
 
-# Step 3: Generate output
+# Step 3: Generate output (Updated with skills prediction for roadmap)
 def generate_output(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
     analysis = state["llm_analysis"]
@@ -165,23 +181,29 @@ Guardrails/Guidelines:
 - Ensure logical progression from foundational to advanced topics
 - Consider realistic timelines and employee workload
 - Prioritize courses that address critical skill gaps first
-- The "reason" field must be exactly 2-4 words explaining the selection
+- The "reason" field must be exactly 4-8 words explaining the selection
 - Include both technical and soft skill development where applicable
 - Ensure course sequence supports career advancement
-- The reason should make sense to the end user for example: "Identified skill gap" should be "Identified skill gap in X via Y" 
+- Calculate skills_after_completion based on current skills + course skills
+- For skills_after_completion, predict realistic skill levels (1-4) employee will have after completing the roadmap
 
-
-Output format: Return JSON array:
-[
-  {{
-    "c_name": "Course Name",
-    "course_id": "...",
-    "desc": "Course Description",
-    "order": 1, # Order in roadmap
-    "duration": number_of_months,
-    "reason": "4-8 word reason for selection",
+Output format: Return JSON object:
+{{
+  "roadmap": [
+    {{
+      "c_name": "Course Name",
+      "course_id": "...",
+      "desc": "Course Description",
+      "order": 1,
+      "duration": number_of_months,
+      "reason": "4-8 word reason for selection"
+    }}
+  ],
+  "skills_after_completion": {{
+    "skill_name": predicted_level_1_to_4,
+    "another_skill": predicted_level_1_to_4
   }}
-]
+}}
 
 {validation_feedback}
 
@@ -206,13 +228,13 @@ Guardrails/Guidelines:
 - Focus on courses that bridge the most critical skill gaps
 - The "reason" field must be exactly 2-4 words explaining the selection
 - Ensure recommendations are achievable within reasonable timeframe
-- The reason should make sense to the end user for example: "Identified skill gap" should also mention the skill gap
+- Include course_id and name from the catalog
 
 Output format: Return JSON array:
 [
   {{
-    "course_id": "...",
-    "name": "Course Name",
+    "course_id": course_id_from_catalog,
+    "name": "Course Name from catalog",
     "reason": "4-8 word reason for selection"
   }}
 ]
@@ -231,13 +253,12 @@ Available Courses:
 
         result = llm.invoke([HumanMessage(content=prompt)])
         state["output"] = result.content
-        # print("Generated Output:", state["output"])
         return state
     finally:
         cursor.close()
         db.close()
 
-# Step 4: Validate output
+# Step 4: Validate output (Updated for new schema)
 def validate_output(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
     analysis = state["llm_analysis"]
@@ -262,6 +283,7 @@ Guardrails/Guidelines:
 - Reasoning must be 2-4 words and meaningful
 - Course progression must be logical and realistic
 - Validate against employee's current role and career level
+- For roadmap: check if skills_after_completion is realistic
 - Set valid to false only if there are critical issues
 
 Output format: Return JSON:
@@ -271,7 +293,7 @@ Output format: Return JSON:
 }}
 
 Available Courses:
-{courses}
+{json.dumps(serialize(courses), indent=2)}
 
 Employee Analysis:
 {analysis}
@@ -285,14 +307,11 @@ Output to Validate:
         result = llm.invoke([HumanMessage(content=prompt)])
         try:
             check = extract_json_block(result.content)
-            # print("Validation Check:", check)
             state["is_valid"] = check["valid"]
         except:
             state["is_valid"] = True  # Assume valid if parsing fails
 
         state["validation_summary"] = result.content
-        # print("Validation Summary:", state["validation_summary"])
-        # print("Validation Result:", state["is_valid"])
         return state
     finally:
         cursor.close()
@@ -300,24 +319,9 @@ Output to Validate:
 
 # Step 5: Final output
 def final_output(state: AgentState) -> AgentState:
-    # extracted_json = extract_json_block(state["output"])
-    # print(f"\n✅ FINAL {state['goal'].upper()}")
-    # if extracted_json:
-    #     print(extracted_json)
-    # else:
-    #     print("❌ Failed to extract JSON from output.")
-    #     print(state["output"])
     return state
 
 def fallback_output(state: AgentState) -> AgentState:
-    # print("\n❌ Output failed validation even after retry.")
-    # print("🔁 Please review manually:")
-    # extracted_json = extract_json_block(state["output"])
-    # if extracted_json:
-    #     print(extracted_json)
-    # else:
-    #     print("❌ Failed to extract JSON from output.")
-    #     print(state["output"])
     return state
 
 # Add a new retry node
@@ -325,7 +329,7 @@ def retry_analysis(state: AgentState) -> AgentState:
     state["retry_count"] = 1
     return state
 
-# LangGraph setup
+# LangGraph setup (unchanged)
 def build_graph():
     builder = StateGraph(AgentState)
 
@@ -333,7 +337,7 @@ def build_graph():
     builder.add_node("Analyze", analyze_user_data)
     builder.add_node("Generate", generate_output)
     builder.add_node("Validate", validate_output)
-    builder.add_node("Retry", retry_analysis)  # Add the retry node
+    builder.add_node("Retry", retry_analysis)
     builder.add_node("FinalOutput", final_output)
     builder.add_node("FallbackOutput", fallback_output)
 
@@ -341,19 +345,19 @@ def build_graph():
     builder.add_edge("Collect", "Analyze")
     builder.add_edge("Analyze", "Generate")
     builder.add_edge("Generate", "Validate")
-    builder.add_edge("Retry", "Analyze")  # Add edge from Retry to Analyze
+    builder.add_edge("Retry", "Analyze")
 
     def output_selector(state: AgentState) -> str:
         if state["is_valid"]:
             return "FinalOutput"
         elif state.get("retry_count", 0) == 0:
-            return "Retry"  # Go to Retry node instead of Analyze
+            return "Retry"
         else:
             return "FallbackOutput"
 
     builder.add_conditional_edges("Validate", output_selector, {
         "FinalOutput": "FinalOutput",
-        "Retry": "Retry",  # Update conditional edge
+        "Retry": "Retry",
         "FallbackOutput": "FallbackOutput"
     })
     builder.add_edge("FinalOutput", END)

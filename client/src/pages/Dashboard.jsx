@@ -90,6 +90,16 @@ export default function Dashboard() {
         };
         setRoadmapData(errorData);
       } else {
+        // Debug: Log the structure we're setting
+        console.log("Setting roadmap data with structure:", {
+          hasOutput: !!data.output,
+          hasRoadmap: !!data.roadmap,
+          isArray: Array.isArray(data),
+          outputType: typeof data.output,
+          roadmapType: typeof data.roadmap,
+          fullData: data,
+        });
+
         setRoadmapData(data);
         setRoadmapLoaded(true);
         console.log("Roadmap data set successfully:", data);
@@ -124,6 +134,7 @@ export default function Dashboard() {
         };
         setRoadmapData(errorData);
       } else {
+        console.log("Setting refreshed roadmap data:", data);
         setRoadmapData(data);
         setRoadmapLoaded(true);
         console.log("Refreshed roadmap data set successfully:", data);

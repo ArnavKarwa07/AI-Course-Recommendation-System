@@ -62,6 +62,39 @@ INSERT INTO m_courses VALUES
 (219, 'Business Process Management', 'Business', 'Optimizing processes', '{"Analysis": 4}', 'Offline', 'Intermediate', '{}', 3.5),
 (220, 'Design Systems Bootcamp', 'Design', 'Advanced design concepts', '{"Design Systems": 4}', 'Bootcamp', 'Advanced', '{"Figma": 3}', 3.5);
 
+-- Insert projects master data (durations between 2-12 months)
+INSERT INTO m_projects VALUES
+(1001, 'Inventory Automation Tool', 'TechCorp Inc', 6, '2024-07-15', '{"Python": 4, "SQL": 3, "Flask": 3}', 'Completed', JSON_ARRAY(113, 105)),
+(1002, 'AI Chatbot Integration', 'E-Commerce Ltd', 4, '2025-06-20', '{"Python": 4, "NLP": 3, "Rasa": 3}', 'In Progress', JSON_ARRAY(113, 120)),
+(1003, 'Smart Analytics Platform', 'DataInsights Co', 8, '2025-09-01', '{"Python": 4, "AI": 3, "TensorFlow": 4}', 'Planned', JSON_ARRAY(113, 120)),
+(1004, 'Enterprise API Gateway', 'MegaCorp', 7, '2024-06-01', '{"Java": 4, "System Design": 4, "Spring Boot": 4}', 'Completed', JSON_ARRAY(113, 119)),
+(1005, 'Payments Platform Refactor', 'FinTech Solutions', 6, '2025-05-10', '{"Java": 4, "Microservices": 4, "Kafka": 3}', 'In Progress', JSON_ARRAY(113, 119)),
+(1006, 'Cloud Native Migration', 'CloudFirst Ltd', 10, '2025-08-15', '{"Java": 4, "Cloud": 4, "Kubernetes": 4}', 'Planned', JSON_ARRAY(113, 108)),
+(1007, 'ML Sales Predictor', 'SalesBoost Inc', 5, '2024-08-10', '{"Machine Learning": 4, "Pandas": 3, "Scikit-Learn": 4}', 'Completed', JSON_ARRAY(120, 103)),
+(1008, 'NLP Ticket Classifier', 'ServiceDesk Pro', 6, '2025-07-05', '{"NLP": 4, "Deep Learning": 3, "Transformers": 4}', 'In Progress', JSON_ARRAY(120, 103)),
+(1009, 'Computer Vision Pipeline', 'VisionTech', 8, '2025-10-12', '{"ML": 4, "Vision": 4, "OpenCV": 3}', 'Planned', JSON_ARRAY(120, 103)),
+(1010, 'Sales Dashboard', 'RetailChain', 4, '2024-05-20', '{"Excel": 4, "Data Visualization": 3, "Power BI": 4}', 'Completed', JSON_ARRAY(105, 120)),
+(1011, 'Retail KPI Tracker', 'ShopSmart', 5, '2025-07-01', '{"Power BI": 4, "SQL": 4, "Analytics": 3}', 'In Progress', JSON_ARRAY(105, 120)),
+(1012, 'Predictive Analytics Suite', 'FutureData', 7, '2025-11-20', '{"Analytics": 4, "Python": 3, "Tableau": 4}', 'Planned', JSON_ARRAY(105, 120)),
+(1013, 'HRMS Implementation', 'HRTech Corp', 8, '2024-03-01', '{"Scrum": 4, "Project Management": 4, "JIRA": 3}', 'Completed', JSON_ARRAY(105, 118)),
+(1014, 'Enterprise Workflow Revamp', 'WorkFlow Inc', 6, '2025-05-10', '{"Stakeholder Management": 4, "Agile": 4, "Process Design": 3}', 'In Progress', JSON_ARRAY(105)),
+(1015, 'Digital Transformation Initiative', 'Transform Ltd', 12, '2025-09-15', '{"Strategy": 4, "Leadership": 4, "Change Management": 4}', 'Planned', JSON_ARRAY(105)),
+(1016, 'Agile Migration', 'AgileCorp', 5, '2024-06-20', '{"Agile": 4, "Team Management": 3, "Scrum": 4}', 'Completed', JSON_ARRAY(113, 105)),
+(1017, 'Team Productivity Optimizer', 'ProductivityPro', 6, '2025-06-15', '{"Leadership": 4, "Planning": 4, "Process Improvement": 3}', 'In Progress', JSON_ARRAY(113, 105)),
+(1018, 'Innovation Framework Setup', 'InnovateTech', 8, '2025-10-01', '{"Innovation": 4, "Management": 4, "Strategy": 3}', 'Planned', JSON_ARRAY(113, 105)),
+(1019, 'Campus Hiring Drive', 'TalentFirst', 3, '2024-07-10', '{"Recruitment": 4, "Coordination": 3, "Communication": 3}', 'Completed', JSON_ARRAY(118, 105)),
+(1020, 'Talent Acquisition Strategy 2025', 'HireBest', 5, '2025-07-25', '{"Recruitment Strategy": 4, "Communication": 4, "Planning": 3}', 'In Progress', JSON_ARRAY(118, 105)),
+(1021, 'Employee Engagement Program', 'EngageCorp', 6, '2025-12-01', '{"HR Strategy": 4, "Engagement": 3, "Culture": 3}', 'Planned', JSON_ARRAY(118, 105)),
+(1022, 'CI/CD Setup', 'DevOpsFirst', 6, '2024-09-01', '{"CI/CD": 4, "Docker": 4, "Jenkins": 3}', 'Completed', JSON_ARRAY(113, 105)),
+(1023, 'Cloud Migration Project', 'CloudMigrate', 8, '2025-06-10', '{"AWS": 4, "Kubernetes": 4, "DevOps": 4}', 'In Progress', JSON_ARRAY(113, 105)),
+(1024, 'Security Automation Platform', 'SecureOps', 9, '2025-11-05', '{"Security": 4, "Automation": 4, "DevSecOps": 4}', 'Planned', JSON_ARRAY(113, 105)),
+(1025, 'Market Research Dashboard', 'MarketInsight', 4, '2024-10-01', '{"Data Analysis": 4, "Visualization": 3, "Business Intelligence": 3}', 'Completed', JSON_ARRAY(105, 111)),
+(1026, 'Customer Journey Mapping', 'CustomerFirst', 5, '2025-07-15', '{"Business Process": 4, "UX": 3, "Analytics": 3}', 'In Progress', JSON_ARRAY(105, 110)),
+(1027, 'Process Optimization Initiative', 'OptimizePro', 6, '2025-10-30', '{"Process Design": 4, "Optimization": 4, "Analysis": 4}', 'Planned', JSON_ARRAY(105)),
+(1028, 'UX Redesign 1.0', 'DesignFirst', 5, '2024-08-05', '{"Figma": 4, "Design Systems": 3, "UX": 4}', 'Completed', JSON_ARRAY(116, 113)),
+(1029, 'Accessibility Audit 2.0', 'AccessibleDesign', 6, '2025-07-20', '{"Accessibility": 4, "UX": 4, "Design": 3}', 'In Progress', JSON_ARRAY(116, 113)),
+(1030, 'Mobile App Redesign', 'MobileFirst', 8, '2025-12-10', '{"Mobile Design": 4, "Prototyping": 4, "UX": 4}', 'Planned', JSON_ARRAY(116, 113));
+
 -- Insert KPI data
 INSERT INTO t_emp_kpi VALUES
 -- Arjun Verma
@@ -156,11 +189,11 @@ INSERT INTO t_emp_kpi VALUES
 (113, '2024-05-01', 'Innovation', 4.2, 'Proposed ML integrations'),
 
 -- Divya Shetty
-(114, '2024-01-01', 'Feedback', 4.1, 'Designs appreciated by users'),
-(114, '2024-02-01', 'Component Reuse', 4.3, 'Improved speed'),
-(114, '2024-03-01', 'Design QA', 4.2, 'Polished and complete'),
-(114, '2024-04-01', 'Micro Interactions', 4.0, 'Added subtle effects'),
-(114, '2024-05-01', 'UX Writing', 3.9, 'Good but can improve'),
+(114, '2024-01-01', 'Feedback', 4.1, 'Good technical contributions'),
+(114, '2024-02-01', 'Code Quality', 4.3, 'Clean implementations'),
+(114, '2024-03-01', 'Learning Pace', 4.2, 'Quick to adapt'),
+(114, '2024-04-01', 'Team Integration', 4.0, 'Collaborative approach'),
+(114, '2024-05-01', 'Innovation', 3.9, 'Shows potential'),
 
 -- Jatin Grover
 (115, '2024-01-01', 'Feedback', 4.4, 'Timely report submissions'),
@@ -227,107 +260,97 @@ INSERT INTO t_course_completion (emp_id, course_id, start_date, duration, score)
 (119, 217, '2024-05-10', 1.9, 4.5),
 (120, 218, '2024-05-15', 1.3, 4.4);
 
--- Insert project data (durations between 2-12 months, 3 projects per employee: past, current, future relative to July 25, 2025)
-INSERT INTO t_emp_projects VALUES
--- Arjun Verma (101)
-(1001, 'Inventory Automation Tool', 101, 'Backend Developer', 6, '2024-07-15', 'Python, Flask', '{"Python": 4, "SQL": 3}'),
-(1002, 'AI Chatbot Integration', 101, 'Lead Developer', 4, '2025-06-20', 'Python, Rasa', '{"Python": 4, "NLP": 3}'),
-(1003, 'Smart Analytics Platform', 101, 'Senior Developer', 8, '2025-09-01', 'Python, TensorFlow', '{"Python": 4, "AI": 3}'),
+-- Insert employee projects data (linking employees to projects with their roles)
+INSERT INTO t_emp_projects (emp_id, project_id, role, skills) VALUES
+-- Arjun Verma (101) - Projects 1001, 1002, 1003
+(101, 1001, 'Backend Developer', '{"Python": 4, "SQL": 3, "Flask": 3}'),
+(101, 1002, 'Lead Developer', '{"Python": 4, "NLP": 3, "Rasa": 3}'),
+(101, 1003, 'Senior Developer', '{"Python": 4, "AI": 3, "TensorFlow": 4}'),
 
--- Neha Sharma (102)
-(1004, 'Enterprise API Gateway', 102, 'System Architect', 7, '2024-06-01', 'Java, Spring Boot', '{"Java": 4, "System Design": 4}'),
-(1005, 'Payments Platform Refactor', 102, 'Tech Lead', 6, '2025-05-10', 'Java, Kafka', '{"Java": 4, "Microservices": 4}'),
-(1006, 'Cloud Native Migration', 102, 'Solution Architect', 10, '2025-08-15', 'Java, Kubernetes', '{"Java": 4, "Cloud": 4}'),
+-- Neha Sharma (102) - Projects 1004, 1005, 1006
+(102, 1004, 'System Architect', '{"Java": 4, "System Design": 4, "Spring Boot": 4}'),
+(102, 1005, 'Tech Lead', '{"Java": 4, "Microservices": 4, "Kafka": 3}'),
+(102, 1006, 'Solution Architect', '{"Java": 4, "Cloud": 4, "Kubernetes": 4}'),
 
--- Ravi Joshi (103)
-(1007, 'ML Sales Predictor', 103, 'ML Engineer', 5, '2024-08-10', 'Python, Scikit-Learn', '{"Machine Learning": 4, "Pandas": 3}'),
-(1008, 'NLP Ticket Classifier', 103, 'Data Scientist', 6, '2025-07-05', 'Python, Transformers', '{"NLP": 4, "Deep Learning": 3}'),
-(1009, 'Computer Vision Pipeline', 103, 'AI Engineer', 8, '2025-10-12', 'Python, OpenCV', '{"ML": 4, "Vision": 4}'),
+-- Ravi Joshi (103) - Projects 1007, 1008, 1009
+(103, 1007, 'ML Engineer', '{"Machine Learning": 4, "Pandas": 3, "Scikit-Learn": 4}'),
+(103, 1008, 'Data Scientist', '{"NLP": 4, "Deep Learning": 3, "Transformers": 4}'),
+(103, 1009, 'AI Engineer', '{"ML": 4, "Vision": 4, "OpenCV": 3}'),
 
--- Simran Kaur (104)
-(1010, 'Sales Dashboard', 104, 'Data Analyst', 4, '2024-05-20', 'Excel, Power BI', '{"Excel": 4, "Data Visualization": 3}'),
-(1011, 'Retail KPI Tracker', 104, 'Senior Analyst', 5, '2025-07-01', 'Power BI, SQL', '{"Power BI": 4, "SQL": 4}'),
-(1012, 'Predictive Analytics Suite', 104, 'BI Analyst', 7, '2025-11-20', 'Tableau, Python', '{"Analytics": 4, "Python": 3}'),
+-- Simran Kaur (104) - Projects 1010, 1011, 1012
+(104, 1010, 'Data Analyst', '{"Excel": 4, "Data Visualization": 3, "Power BI": 4}'),
+(104, 1011, 'Senior Analyst', '{"Power BI": 4, "SQL": 4, "Analytics": 3}'),
+(104, 1012, 'BI Analyst', '{"Analytics": 4, "Python": 3, "Tableau": 4}'),
 
--- Manish Mehta (105)
-(1013, 'HRMS Implementation', 105, 'Project Manager', 8, '2024-03-01', 'JIRA, Excel', '{"Scrum": 4, "Project Management": 4}'),
-(1014, 'Enterprise Workflow Revamp', 105, 'Senior PM', 6, '2025-05-10', 'MS Project, Azure DevOps', '{"Stakeholder Management": 4, "Agile": 4}'),
-(1015, 'Digital Transformation Initiative', 105, 'Program Manager', 12, '2025-09-15', 'Azure, PowerBI', '{"Strategy": 4, "Leadership": 4}'),
+-- Manish Mehta (105) - Projects 1013, 1014, 1015
+(105, 1013, 'Project Manager', '{"Scrum": 4, "Project Management": 4, "JIRA": 3}'),
+(105, 1014, 'Senior PM', '{"Stakeholder Management": 4, "Agile": 4, "Process Design": 3}'),
+(105, 1015, 'Program Manager', '{"Strategy": 4, "Leadership": 4, "Change Management": 4}'),
 
--- Priya Kapoor (106)
-(1016, 'Agile Migration', 106, 'Scrum Master', 5, '2024-06-20', 'JIRA, Confluence', '{"Agile": 4, "Team Management": 3}'),
-(1017, 'Team Productivity Optimizer', 106, 'Project Lead', 6, '2025-06-15', 'Trello, Notion', '{"Leadership": 4, "Planning": 4}'),
-(1018, 'Innovation Framework Setup', 106, 'Engineering Manager', 8, '2025-10-01', 'Slack, Asana', '{"Innovation": 4, "Management": 4}'),
+-- Priya Kapoor (106) - Projects 1016, 1017, 1018
+(106, 1016, 'Scrum Master', '{"Agile": 4, "Team Management": 3, "Scrum": 4}'),
+(106, 1017, 'Project Lead', '{"Leadership": 4, "Planning": 4, "Process Improvement": 3}'),
+(106, 1018, 'Engineering Manager', '{"Innovation": 4, "Management": 4, "Strategy": 3}'),
 
--- Alok Singh (107)
-(1019, 'Campus Hiring Drive', 107, 'HR Coordinator', 3, '2024-07-10', 'Excel, MS Teams', '{"Recruitment": 4, "Coordination": 3}'),
-(1020, 'Talent Acquisition Strategy 2025', 107, 'HR Specialist', 5, '2025-07-25', 'Zoho Recruit, LinkedIn', '{"Recruitment Strategy": 4, "Communication": 4}'),
-(1021, 'Employee Engagement Program', 107, 'HR Business Partner', 6, '2025-12-01', 'Slack, SurveyMonkey', '{"HR Strategy": 4, "Engagement": 3}'),
+-- Alok Singh (107) - Projects 1019, 1020, 1021
+(107, 1019, 'HR Coordinator', '{"Recruitment": 4, "Coordination": 3, "Communication": 3}'),
+(107, 1020, 'HR Specialist', '{"Recruitment Strategy": 4, "Communication": 4, "Planning": 3}'),
+(107, 1021, 'HR Business Partner', '{"HR Strategy": 4, "Engagement": 3, "Culture": 3}'),
 
--- Tanvi Desai (108)
-(1022, 'CI/CD Setup', 108, 'DevOps Engineer', 6, '2024-09-01', 'Docker, Jenkins', '{"CI/CD": 4, "Docker": 4}'),
-(1023, 'Cloud Migration Project', 108, 'Infrastructure Lead', 8, '2025-06-10', 'AWS, Kubernetes', '{"AWS": 4, "Kubernetes": 4}'),
-(1024, 'Security Automation Platform', 108, 'Senior DevOps', 9, '2025-11-05', 'Terraform, Vault', '{"Security": 4, "Automation": 4}'),
+-- Tanvi Desai (108) - Projects 1022, 1023, 1024
+(108, 1022, 'DevOps Engineer', '{"CI/CD": 4, "Docker": 4, "Jenkins": 3}'),
+(108, 1023, 'Infrastructure Lead', '{"AWS": 4, "Kubernetes": 4, "DevOps": 4}'),
+(108, 1024, 'Senior DevOps', '{"Security": 4, "Automation": 4, "DevSecOps": 4}'),
 
--- Karan Patel (109)
-(1025, 'Market Research Dashboard', 109, 'Business Analyst', 4, '2024-10-01', 'Excel, Tableau', '{"Data Analysis": 4, "Visualization": 3}'),
-(1026, 'Customer Journey Mapping', 109, 'BA Lead', 5, '2025-07-15', 'Figma, PowerPoint', '{"Business Process": 4, "UX": 3}'),
-(1027, 'Process Optimization Initiative', 109, 'Senior BA', 6, '2025-10-30', 'Visio, PowerBI', '{"Process Design": 4, "Optimization": 4}'),
+-- Karan Patel (109) - Projects 1025, 1026, 1027
+(109, 1025, 'Business Analyst', '{"Data Analysis": 4, "Visualization": 3, "Business Intelligence": 3}'),
+(109, 1026, 'BA Lead', '{"Business Process": 4, "UX": 3, "Analytics": 3}'),
+(109, 1027, 'Senior BA', '{"Process Design": 4, "Optimization": 4, "Analysis": 4}'),
 
--- Megha Nair (110)
-(1028, 'UX Redesign 1.0', 110, 'UI Designer', 5, '2024-08-05', 'Figma, Adobe XD', '{"Figma": 4, "Design Systems": 3}'),
-(1029, 'Accessibility Audit 2.0', 110, 'UX Lead', 6, '2025-07-20', 'WAVE, Axe DevTools', '{"Accessibility": 4, "UX": 4}'),
-(1030, 'Mobile App Redesign', 110, 'Senior Designer', 8, '2025-12-10', 'Figma, Principle', '{"Mobile Design": 4, "Prototyping": 4}'),
+-- Megha Nair (110) - Projects 1028, 1029, 1030
+(110, 1028, 'UI Designer', '{"Figma": 4, "Design Systems": 3, "UX": 4}'),
+(110, 1029, 'UX Lead', '{"Accessibility": 4, "UX": 4, "Design": 3}'),
+(110, 1030, 'Senior Designer', '{"Mobile Design": 4, "Prototyping": 4, "UX": 4}'),
 
--- Rahul Kumar (111)
-(1031, 'SEO Optimization Sprint', 111, 'SEO Analyst', 4, '2024-07-01', 'Google Analytics, Ahrefs', '{"SEO": 4, "Analytics": 3}'),
-(1032, 'Growth Campaign Strategy', 111, 'Digital Marketing Lead', 5, '2025-06-30', 'Semrush, Meta Ads', '{"Growth Hacking": 4, "Digital Strategy": 4}'),
-(1033, 'Marketing Automation Setup', 111, 'Marketing Manager', 6, '2025-11-15', 'HubSpot, Mailchimp', '{"Marketing Tech": 4, "Automation": 3}'),
+-- Additional employees on multiple projects for realistic overlap
+-- Rahul Kumar (111) - SEO and Growth projects
+(111, 1025, 'Marketing Analyst', '{"SEO": 4, "Analytics": 3, "Digital Marketing": 3}'),
 
--- Sanya Rathi (112)
-(1034, 'Budgeting Automation', 112, 'Finance Analyst', 5, '2024-09-15', 'Excel, Power BI', '{"Finance": 4, "Forecasting": 3}'),
-(1035, 'Stock Performance Tracker', 112, 'Sr. Finance Analyst', 6, '2025-07-05', 'Python, Excel', '{"Financial Analysis": 4, "Reporting": 4}'),
-(1036, 'Investment Portfolio System', 112, 'Finance Manager', 8, '2025-12-20', 'R, Bloomberg', '{"Investment": 4, "Risk Analysis": 4}'),
+-- Sanya Rathi (112) - Finance projects
+(112, 1013, 'Finance Consultant', '{"Finance": 4, "Budgeting": 3, "Analysis": 3}'),
 
--- Amit Thakur (113)
-(1037, 'Dev Infrastructure Refactor', 113, 'Tech Lead', 8, '2024-02-10', 'Docker, GitLab CI', '{"Leadership": 4, "DevOps": 4}'),
-(1038, 'Performance Scaling Platform', 113, 'Engineering Lead', 7, '2025-07-15', 'Go, Redis', '{"Performance": 4, "Architecture": 4}'),
-(1039, 'Next-Gen Architecture Design', 113, 'Engineering Head', 10, '2025-10-25', 'Kubernetes, Istio', '{"System Design": 4, "Innovation": 4}'),
+-- Amit Thakur (113) - Tech Lead on multiple engineering projects
+(113, 1001, 'Technical Advisor', '{"Leadership": 4, "Architecture": 4, "Mentoring": 3}'),
+(113, 1004, 'Tech Lead', '{"Leadership": 4, "System Design": 4, "Java": 3}'),
+(113, 1016, 'Engineering Manager', '{"Leadership": 4, "Agile": 4, "Team Management": 4}'),
 
--- Divya Shetty (114)
-(1040, 'Bug Bounty Program Launch', 114, 'Developer', 4, '2024-11-05', 'Python, SQL', '{"Security": 3, "Testing": 4}'),
-(1041, 'DevSecOps Framework', 114, 'Security Engineer', 5, '2025-06-25', 'SonarQube, OWASP', '{"Security": 4, "CI/CD": 3}'),
-(1042, 'Blockchain Integration POC', 114, 'Senior Developer', 6, '2025-11-30', 'Solidity, Web3', '{"Blockchain": 4, "Web3": 3}'),
+-- Divya Shetty (114) - Junior developer on projects
+(114, 1002, 'Junior Developer', '{"Python": 3, "Learning": 4, "Development": 3}'),
 
--- Jatin Grover (115)
-(1043, 'Retail Insights Report', 115, 'Junior Analyst', 5, '2024-06-10', 'Excel, SQL', '{"SQL": 3, "Excel": 4}'),
-(1044, 'E-commerce Insights Engine', 115, 'BI Specialist', 6, '2025-07-30', 'Looker, BigQuery', '{"BI Tools": 4, "SQL": 4}'),
-(1045, 'Customer Segmentation Model', 115, 'Senior Analyst', 8, '2025-12-15', 'Python, Tableau', '{"Analytics": 4, "ML": 3}'),
+-- Jatin Grover (115) - Data projects
+(115, 1010, 'Data Analyst', '{"SQL": 4, "Excel": 3, "Reporting": 3}'),
+(115, 1011, 'BI Specialist', '{"SQL": 4, "Power BI": 3, "Analytics": 3}'),
 
--- Nidhi Rane (116)
-(1046, 'Mobile UI Kit', 116, 'UI/UX Intern', 4, '2024-07-20', 'Figma, Sketch', '{"Figma": 3, "Typography": 3}'),
-(1047, 'Design Systems Expansion', 116, 'UI Lead', 5, '2025-07-12', 'Figma, Zeplin', '{"Design Systems": 4, "Prototyping": 4}'),
-(1048, 'AR/VR Interface Design', 116, 'UX Lead', 8, '2025-12-05', 'Unity, Blender', '{"3D Design": 4, "AR/VR": 3}'),
+-- Nidhi Rane (116) - Design projects
+(116, 1028, 'UI/UX Designer', '{"Figma": 4, "Design": 4, "Prototyping": 3}'),
+(116, 1029, 'UX Designer', '{"UX": 4, "Accessibility": 3, "Research": 3}'),
 
--- Saurabh Dixit (117)
-(1049, 'Hiring Analytics Report', 117, 'HR Analyst', 4, '2024-09-05', 'Excel, Power BI', '{"Recruitment": 3, "Visualization": 3}'),
-(1050, 'Workforce Planning Tool', 117, 'HRBP', 6, '2025-07-22', 'Tableau, BambooHR', '{"HR Analytics": 4, "Planning": 3}'),
-(1051, 'Culture Transformation Initiative', 117, 'Senior HRBP', 8, '2025-11-10', 'Slack, Culture Amp', '{"Culture": 4, "Change Management": 4}'),
+-- Saurabh Dixit (117) - HR projects
+(117, 1019, 'HR Analyst', '{"Recruitment": 3, "Analysis": 3, "Coordination": 3}'),
+(117, 1020, 'Recruitment Specialist', '{"Recruitment": 4, "Strategy": 3, "Communication": 3}'),
 
--- Ritika Jain (118)
-(1052, 'DEI Strategy Rollout', 118, 'HR Manager', 6, '2024-08-15', 'Slack, Notion', '{"HR Policy": 4, "Leadership": 4}'),
-(1053, 'Global Policy Overhaul', 118, 'Director HR', 8, '2025-06-18', 'SharePoint, Workday', '{"Policy Design": 4, "Change Management": 4}'),
-(1054, 'Future of Work Strategy', 118, 'Chief People Officer', 12, '2025-10-15', 'Workday, Slack', '{"Strategic Planning": 4, "Innovation": 4}'),
+-- Ritika Jain (118) - Senior HR on strategic projects
+(118, 1013, 'HR Director', '{"HR Strategy": 4, "Leadership": 4, "Change Management": 4}'),
+(118, 1021, 'Chief People Officer', '{"Strategy": 4, "Leadership": 4, "Culture": 4}'),
 
--- Ankit Rao (119)
-(1055, 'Microservices Migration', 119, 'SSE', 8, '2024-04-10', 'Spring Boot, Kafka', '{"Java": 4, "Microservices": 4}'),
-(1056, 'Distributed Tracing Platform', 119, 'System Architect', 7, '2025-07-05', 'OpenTelemetry, Prometheus', '{"System Design": 4, "Monitoring": 4}'),
-(1057, 'Event-Driven Architecture', 119, 'Tech Lead', 9, '2025-11-25', 'Kafka, Redis', '{"Architecture": 4, "Event Systems": 4}'),
+-- Ankit Rao (119) - Senior engineering projects
+(119, 1004, 'Senior Software Engineer', '{"Java": 4, "Microservices": 3, "System Design": 4}'),
+(119, 1005, 'System Architect', '{"Java": 4, "Microservices": 4, "Architecture": 4}'),
 
--- Isha Bhosale (120)
-(1058, 'AI-Powered Assistant', 120, 'Junior Data Scientist', 6, '2024-05-12', 'Python, HuggingFace', '{"ML": 4, "Transformers": 4}'),
-(1059, 'Causal Inference Engine', 120, 'Lead AI Engineer', 8, '2025-07-14', 'CausalML, PyTorch', '{"AI Modeling": 4, "Statistics": 4}'),
-(1060, 'Generative AI Platform', 120, 'AI Lead', 10, '2025-10-20', 'GPT, LangChain', '{"GenAI": 4, "LLM": 4}');
+-- Isha Bhosale (120) - AI/ML projects
+(120, 1007, 'Data Science Lead', '{"ML": 4, "Leadership": 3, "Mentoring": 3}'),
+(120, 1008, 'AI Engineering Lead', '{"AI": 4, "NLP": 4, "Leadership": 3}'),
+(120, 1009, 'AI Lead', '{"AI": 4, "Vision": 4, "Strategy": 3}');
 
 -- Insert ongoing courses data
 INSERT INTO t_ongoing_courses VALUES
