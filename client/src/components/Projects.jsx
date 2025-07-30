@@ -4,7 +4,7 @@ export default function Projects({ projectsData }) {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
     });
   };
@@ -28,9 +28,9 @@ export default function Projects({ projectsData }) {
   const getBackgroundColor = (status) => {
     switch (status) {
       case "Upcoming":
-        return "#f0f9ff";
+        return "#f8fafc";
       case "Ongoing":
-        return "#fcf4d6ff";
+        return "#fffbeb";
       case "Completed":
         return "#f0fdf4";
       default:
@@ -43,7 +43,7 @@ export default function Projects({ projectsData }) {
       case "Upcoming":
         return { backgroundColor: "#dbeafe", color: "#1e40af" };
       case "Ongoing":
-        return { backgroundColor: "#ffec9fff", color: "#92400e" };
+        return { backgroundColor: "#fef3c7", color: "#d97706" };
       case "Completed":
         return { backgroundColor: "#dcfce7", color: "#166534" };
       default:
@@ -57,7 +57,7 @@ export default function Projects({ projectsData }) {
       try {
         return JSON.parse(techStack);
       } catch (e) {
-        return techStack; // Return as string if parsing fails
+        return techStack;
       }
     }
     return techStack;
@@ -65,13 +65,13 @@ export default function Projects({ projectsData }) {
 
   return (
     <div className="card">
-      <h3 style={{ marginTop: 0 }}>Projects</h3>
+      <h3 style={{ marginTop: 0, marginBottom: "1.5rem" }}>Projects</h3>
       {projectsData && projectsData.length > 0 ? (
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "1rem",
+            gap: "1.5rem",
           }}
         >
           {projectsData.map((project, index) => {
@@ -82,35 +82,53 @@ export default function Projects({ projectsData }) {
               <div
                 key={project.project_id || index}
                 style={{
-                  padding: "1rem",
+                  padding: "1.5rem",
                   border: "1px solid #e5e7eb",
-                  borderRadius: "0.5rem",
+                  borderRadius: "12px",
                   backgroundColor: getBackgroundColor(status),
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
                 }}
               >
+                {/* Header Section */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "start",
-                    marginBottom: "0.5rem",
+                    alignItems: "flex-start",
+                    marginBottom: "1rem",
                   }}
                 >
-                  <h4
-                    style={{
-                      margin: "0",
-                      fontSize: "1rem",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {project.project_name || `Project ${index + 1}`}
-                  </h4>
+                  <div style={{ flex: 1 }}>
+                    <h4
+                      style={{
+                        margin: "0 0 0.25rem 0",
+                        fontSize: "1.125rem",
+                        fontWeight: "600",
+                        color: "#111827",
+                      }}
+                    >
+                      {project.project_name || `Project ${index + 1}`}
+                    </h4>
+                    {project.client && (
+                      <p
+                        style={{
+                          margin: "0",
+                          fontSize: "0.875rem",
+                          color: "#6b7280",
+                        }}
+                      >
+                        {project.client}
+                      </p>
+                    )}
+                  </div>
                   <span
                     style={{
-                      padding: "0.25rem 0.5rem",
-                      borderRadius: "0.5rem",
+                      padding: "0.375rem 0.75rem",
+                      borderRadius: "20px",
                       fontSize: "0.75rem",
-                      fontWeight: "500",
+                      fontWeight: "600",
+                      whiteSpace: "nowrap",
+                      marginLeft: "1rem",
                       ...getBadgeColor(status),
                     }}
                   >
@@ -118,41 +136,44 @@ export default function Projects({ projectsData }) {
                   </span>
                 </div>
 
-                {project.client && (
-                  <div style={{ marginBottom: "0.5rem" }}>
-                    <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
-                      Client: <strong>{project.client}</strong>
-                    </span>
-                  </div>
-                )}
-
-                <div style={{ marginBottom: "0.5rem" }}>
-                  <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
-                    Role: <strong>{project.project_role}</strong>
+                {/* Role Section */}
+                <div style={{ marginBottom: "1rem" }}>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "0.25rem 0.75rem",
+                      backgroundColor: "#f3f4f6",
+                      color: "#374151",
+                      borderRadius: "6px",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {project.project_role}
                   </span>
                 </div>
 
-                {/* Tech Stack - Handle both string and object formats */}
-                {techStack && (
-                  <div style={{ marginBottom: "0.5rem" }}>
-                    <span style={{ fontSize: "0.875rem", color: "#4b5563" }}>
-                      Tech Stack:{" "}
-                      {typeof techStack === "object"
-                        ? Object.keys(techStack).join(", ")
-                        : techStack}
-                    </span>
-                  </div>
-                )}
-
-                {/* Skills Used */}
+                {/* Skills Section */}
                 {project.skills_used &&
                   Object.keys(project.skills_used).length > 0 && (
-                    <div style={{ marginBottom: "0.5rem" }}>
+                    <div style={{ marginBottom: "1rem" }}>
+                      <p
+                        style={{
+                          margin: "0 0 0.5rem 0",
+                          fontSize: "0.75rem",
+                          fontWeight: "600",
+                          color: "#6b7280",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Skills Used
+                      </p>
                       <div
                         style={{
                           display: "flex",
                           flexWrap: "wrap",
-                          gap: "0.25rem",
+                          gap: "0.5rem",
                         }}
                       >
                         {Object.entries(project.skills_used).map(
@@ -160,15 +181,16 @@ export default function Projects({ projectsData }) {
                             <span
                               key={skill}
                               style={{
-                                padding: "0.125rem 0.5rem",
-                                backgroundColor: "#f3e8ff",
+                                padding: "0.25rem 0.75rem",
+                                backgroundColor: "#ede9fe",
                                 color: "#7c3aed",
-                                borderRadius: "0.75rem",
-                                fontSize: "0.75rem",
+                                borderRadius: "16px",
+                                fontSize: "0.8rem",
                                 fontWeight: "500",
+                                border: "1px solid #e0e7ff",
                               }}
                             >
-                              {skill} (Lvl {level})
+                              {skill} • L{level}
                             </span>
                           )
                         )}
@@ -176,32 +198,68 @@ export default function Projects({ projectsData }) {
                     </div>
                   )}
 
+                {/* Tech Stack Section */}
+                {techStack && (
+                  <div style={{ marginBottom: "1rem" }}>
+                    <p
+                      style={{
+                        margin: "0 0 0.5rem 0",
+                        fontSize: "0.75rem",
+                        fontWeight: "600",
+                        color: "#6b7280",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      Tech Stack
+                    </p>
+                    <p
+                      style={{
+                        margin: "0",
+                        fontSize: "0.875rem",
+                        color: "#374151",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {typeof techStack === "object"
+                        ? Object.keys(techStack).join(" • ")
+                        : techStack}
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer Section */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    fontSize: "0.75rem",
+                    alignItems: "center",
+                    paddingTop: "1rem",
+                    borderTop: "1px solid #e5e7eb",
+                    fontSize: "0.8rem",
                     color: "#6b7280",
                   }}
                 >
-                  <span>Start Date: {formatDate(project.date)}</span>
-                  <span>Duration: {project.duration} months</span>
-                  {project.status && <span>Status: {project.status}</span>}
+                  <span>{formatDate(project.date)}</span>
+                  <span>{project.duration} months</span>
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <p
+        <div
           style={{
             textAlign: "center",
             color: "#6b7280",
-            padding: "2rem",
+            padding: "3rem 1rem",
+            backgroundColor: "#f9fafb",
+            borderRadius: "12px",
+            border: "2px dashed #d1d5db",
           }}
         >
-          No projects found
-        </p>
+          <p style={{ margin: "0", fontSize: "1rem" }}>No projects found</p>
+        </div>
       )}
     </div>
   );

@@ -12,7 +12,6 @@ import Skills from "../components/Skills";
 import Projects from "../components/Projects";
 import PersonalInformation from "../components/PersonalInformation";
 import LearningProfile from "../components/LearningProfile";
-import LearningStats from "../components/LearningStats";
 import KPIs from "../components/KPIs";
 import CompletedCourses from "../components/CompletedCourses";
 

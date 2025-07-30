@@ -185,7 +185,7 @@ Guardrails/Guidelines:
 - Include both technical and soft skill development where applicable
 - Ensure course sequence supports career advancement
 - Calculate skills_after_completion based on current skills + course skills
-- For skills_after_completion, predict realistic skill levels (1-4) employee will have after completing the roadmap
+- For skills_after_completion, predict realistic skill levels (1-4) employee will have after completing the roadmap these should include pre-existing skills and new skills the employee will obtain
 
 Output format: Return JSON object:
 {{
