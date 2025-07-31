@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   getTeamMembersAPI,
-  useEmployeeDetailsAPI,
-  useCourseCompletionAPI,
-  useKPIAPI,
-  useProjectsAPI,
+  getBulkEmployeeDataAPI,
   getCoursesAPI,
   getRolesAPI,
 } from "../api/apis";
@@ -18,10 +15,6 @@ import LearningStats from "../components/LearningStats";
 
 export default function YourTeam() {
   const { empId } = useAuth();
-  const { getEmployeeDetails } = useEmployeeDetailsAPI();
-  const { getCourseCompletion } = useCourseCompletionAPI();
-  const { getKPI } = useKPIAPI();
-  const { getProjects } = useProjectsAPI();
 
   // State Management
   const [teamMembers, setTeamMembers] = useState([]);
@@ -32,7 +25,7 @@ export default function YourTeam() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedMember, setSelectedMember] = useState(null);
-  const [loadingStates, setLoadingStates] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   // Initialize data loading
   useEffect(() => {
@@ -41,6 +34,7 @@ export default function YourTeam() {
 
       try {
         setLoading(true);
+        setError(null);
 
         // Load team members and reference data
         const [teamResponse, coursesResponse, rolesResponse] =
@@ -55,11 +49,13 @@ export default function YourTeam() {
         setAvailableCourses(coursesResponse.data || []);
         setRoles(rolesResponse.data || []);
 
-        // Load detailed data for all team members
-        await loadAllTeamMemberData(members);
+        // If we have team members, load their bulk data
+        if (members.length > 0) {
+          await loadBulkTeamMemberData(members);
+        }
       } catch (err) {
         console.error("Error initializing team data:", err);
-        setError("Failed to load team data");
+        setError("Failed to load team data. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -68,56 +64,45 @@ export default function YourTeam() {
     initializeData();
   }, [empId]);
 
-  // Load detailed data for all team members
-  const loadAllTeamMemberData = async (members) => {
-    const memberDataPromises = members.map(async (member) => {
-      setLoadingStates((prev) => ({ ...prev, [member.emp_id]: true }));
+  // Load bulk data for all team members efficiently
+  const loadBulkTeamMemberData = async (members) => {
+    try {
+      const empIds = members.map((member) => member.emp_id);
+      const bulkDataResponse = await getBulkEmployeeDataAPI(empIds);
 
-      try {
-        const [employeeData, kpiData, courseData, projectData] =
-          await Promise.all([
-            getEmployeeDetails(member.emp_id).catch(() => ({ data: null })),
-            getKPI(member.emp_id).catch(() => ({ data: [] })),
-            getCourseCompletion(member.emp_id).catch(() => ({
-              data: { completedCourses: [] },
-            })),
-            getProjects(member.emp_id).catch(() => ({ data: [] })),
-          ]);
+      if (bulkDataResponse.data) {
+        // Transform the bulk data to match the expected format
+        const transformedData = {};
 
-        return {
-          emp_id: member.emp_id,
-          data: {
-            employee: employeeData.data,
-            kpi: kpiData.data || [],
-            courses: courseData.data?.completedCourses || [],
-            projects: projectData.data || [],
+        Object.entries(bulkDataResponse.data).forEach(([empId, data]) => {
+          transformedData[empId] = {
+            employee: data.employee,
+            kpi: data.kpi || [],
+            courses: data.courses || [],
+            projects: data.projects || [],
+            ongoing_courses: data.ongoing_courses || [],
             loaded: true,
-          },
-        };
-      } catch (err) {
-        console.error(`Error loading data for ${member.name}:`, err);
-        return {
-          emp_id: member.emp_id,
-          data: {
-            employee: null,
-            kpi: [],
-            courses: [],
-            projects: [],
-            loaded: false,
-          },
-        };
-      } finally {
-        setLoadingStates((prev) => ({ ...prev, [member.emp_id]: false }));
+          };
+        });
+
+        setTeamMembersData(transformedData);
       }
-    });
-
-    const memberDataResults = await Promise.all(memberDataPromises);
-    const memberDataMap = {};
-    memberDataResults.forEach(({ emp_id, data }) => {
-      memberDataMap[emp_id] = data;
-    });
-
-    setTeamMembersData(memberDataMap);
+    } catch (err) {
+      console.error("Error loading bulk team member data:", err);
+      // Create empty data structure for failed loads
+      const emptyData = {};
+      members.forEach((member) => {
+        emptyData[member.emp_id] = {
+          employee: null,
+          kpi: [],
+          courses: [],
+          projects: [],
+          ongoing_courses: [],
+          loaded: false,
+        };
+      });
+      setTeamMembersData(emptyData);
+    }
   };
 
   // Analytics Functions
@@ -195,7 +180,6 @@ export default function YourTeam() {
 
   const getSkillAnalytics = () => {
     const skillMap = {};
-    const roleSkillRequirements = {};
 
     // Analyze current skills
     teamMembers.forEach((member) => {
@@ -203,11 +187,18 @@ export default function YourTeam() {
       if (memberData?.employee?.skills) {
         Object.entries(memberData.employee.skills).forEach(([skill, level]) => {
           if (!skillMap[skill]) {
-            skillMap[skill] = { total: 0, count: 0, members: [], experts: [] };
+            skillMap[skill] = {
+              total: 0,
+              count: 0,
+              members: [],
+              experts: [],
+              levels: [],
+            };
           }
           skillMap[skill].total += level;
           skillMap[skill].count += 1;
-          skillMap[skill].members.push(member.name);
+          skillMap[skill].members.push({ name: member.name, level });
+          skillMap[skill].levels.push(level);
 
           if (level >= 4) {
             skillMap[skill].experts.push(member.name);
@@ -223,6 +214,8 @@ export default function YourTeam() {
         memberCount: data.count,
         coverage: ((data.count / teamMembers.length) * 100).toFixed(0),
         experts: data.experts,
+        members: data.members,
+        levels: data.levels,
       }))
       .sort((a, b) => b.averageLevel - a.averageLevel);
 
@@ -270,11 +263,17 @@ export default function YourTeam() {
             scoreCount += 1;
           }
 
-          const category = course.category || "General";
+          const category =
+            course.category || course.course_category || "General";
           if (!learningStats.coursesByCategory[category]) {
-            learningStats.coursesByCategory[category] = 0;
+            learningStats.coursesByCategory[category] = [];
           }
-          learningStats.coursesByCategory[category] += 1;
+          learningStats.coursesByCategory[category].push({
+            courseName: course.course_name,
+            memberName: member.name,
+            score: course.score,
+            completionDate: course.end_date,
+          });
         });
       }
     });
@@ -289,127 +288,79 @@ export default function YourTeam() {
     return learningStats;
   };
 
-  const getCareerAnalytics = () => {
-    const careerStats = {
-      promotionCandidates: [],
-      careerGoals: {},
-      successionPlan: {},
-    };
+  // Create Skills Heatmap Data
+  const createSkillsHeatmapData = () => {
+    const skillAnalytics = getSkillAnalytics();
+    const maxMembers = teamMembers.length;
 
-    teamMembers.forEach((member) => {
-      const memberData = teamMembersData[member.emp_id];
-      const employee = memberData?.employee;
+    return skillAnalytics.skillDistribution.map((skill) => ({
+      skill: skill.skill,
+      coverage: parseInt(skill.coverage),
+      averageLevel: parseFloat(skill.averageLevel),
+      memberCount: skill.memberCount,
+      size: (skill.memberCount / maxMembers) * 100, // For bubble size
+      color:
+        skill.averageLevel >= 4
+          ? "#10b981"
+          : skill.averageLevel >= 3
+          ? "#f59e0b"
+          : "#ef4444",
+    }));
+  };
 
-      if (employee) {
-        // Career goals distribution
-        const goal = employee.career_goal || "Not specified";
-        careerStats.careerGoals[goal] =
-          (careerStats.careerGoals[goal] || 0) + 1;
-
-        // Promotion readiness analysis
-        const experienceMonths = employee.experience || 0;
-        const role = roles.find((r) => r.role_name === employee.role);
-        const avgPromotionTime = role?.avg_promotion_time || 24;
-
-        const timeSinceLastPromotion = employee.last_promotion_date
-          ? Math.floor(
-              (new Date() - new Date(employee.last_promotion_date)) /
-                (1000 * 60 * 60 * 24 * 30)
-            )
-          : experienceMonths;
-
-        if (timeSinceLastPromotion >= avgPromotionTime * 0.8) {
+  // Enhanced Performance Analytics
+  const getEnhancedPerformanceAnalytics = () => {
+    const memberPerformance = teamMembers
+      .map((member) => {
+        const memberData = teamMembersData[member.emp_id];
+        if (memberData?.kpi && memberData.kpi.length > 0) {
+          const kpiScores = memberData.kpi.map((kpi) => kpi.kpi_score);
           const avgKPI =
-            memberData.kpi && memberData.kpi.length > 0
-              ? memberData.kpi.reduce((sum, kpi) => sum + kpi.kpi_score, 0) /
-                memberData.kpi.length
-              : 0;
+            kpiScores.reduce((sum, score) => sum + score, 0) / kpiScores.length;
+          const kpiByMetric = {};
 
-          careerStats.promotionCandidates.push({
-            ...member,
-            readinessScore: avgKPI.toFixed(1),
-            monthsEligible: Math.max(
-              0,
-              timeSinceLastPromotion - avgPromotionTime
-            ),
+          memberData.kpi.forEach((kpi) => {
+            kpiByMetric[kpi.kpi_metric] = kpi.kpi_score;
           });
+
+          return {
+            name: member.name,
+            avgKPI: parseFloat(avgKPI.toFixed(2)),
+            kpiMetrics: kpiByMetric,
+            empId: member.emp_id,
+          };
         }
+        return null;
+      })
+      .filter(Boolean);
 
-        // Succession planning
-        const targetRole = employee.career_goal || `Senior ${employee.role}`;
-        if (!careerStats.successionPlan[targetRole]) {
-          careerStats.successionPlan[targetRole] = [];
-        }
-        careerStats.successionPlan[targetRole].push(member);
-      }
-    });
-
-    careerStats.promotionCandidates.sort(
-      (a, b) => b.readinessScore - a.readinessScore
-    );
-
-    return careerStats;
-  };
-
-  const getProjectAnalytics = () => {
-    const projectStats = {
-      totalProjects: 0,
-      activeProjects: 0,
-      completedProjects: 0,
-      resourceUtilization: {},
-      skillUtilization: {},
-      averagePerformance: 0,
+    // Group by performance ranges for better visualization
+    const performanceRanges = {
+      "4.5-5.0": memberPerformance.filter((m) => m.avgKPI >= 4.5),
+      "4.0-4.4": memberPerformance.filter(
+        (m) => m.avgKPI >= 4.0 && m.avgKPI < 4.5
+      ),
+      "3.5-3.9": memberPerformance.filter(
+        (m) => m.avgKPI >= 3.5 && m.avgKPI < 4.0
+      ),
+      "3.0-3.4": memberPerformance.filter(
+        (m) => m.avgKPI >= 3.0 && m.avgKPI < 3.5
+      ),
+      "2.5-2.9": memberPerformance.filter(
+        (m) => m.avgKPI >= 2.5 && m.avgKPI < 3.0
+      ),
+      "Below 2.5": memberPerformance.filter((m) => m.avgKPI < 2.5),
     };
 
-    let performanceSum = 0;
-    let performanceCount = 0;
-
-    teamMembers.forEach((member) => {
-      const memberData = teamMembersData[member.emp_id];
-      if (memberData?.projects) {
-        projectStats.totalProjects += memberData.projects.length;
-
-        let memberUtilization = 0;
-
-        memberData.projects.forEach((project) => {
-          if (project.status === "active") {
-            projectStats.activeProjects += 1;
-            memberUtilization += project.allocation_percentage || 100;
-          } else if (project.status === "completed") {
-            projectStats.completedProjects += 1;
-            if (project.performance_score) {
-              performanceSum += project.performance_score;
-              performanceCount += 1;
-            }
-          }
-
-          // Track skill utilization
-          if (project.required_skills) {
-            project.required_skills.forEach((skill) => {
-              projectStats.skillUtilization[skill] =
-                (projectStats.skillUtilization[skill] || 0) + 1;
-            });
-          }
-        });
-
-        projectStats.resourceUtilization[member.name] = memberUtilization;
-      }
-    });
-
-    projectStats.averagePerformance =
-      performanceCount > 0 ? (performanceSum / performanceCount).toFixed(1) : 0;
-
-    return projectStats;
+    return { memberPerformance, performanceRanges };
   };
 
-  // Tab Navigation
+  // Tab Navigation (removed career and projects)
   const tabs = [
     { id: "overview", label: "Team Overview" },
     { id: "performance", label: "Performance Analytics" },
     { id: "skills", label: "Skills Analysis" },
     { id: "learning", label: "Learning Progress" },
-    { id: "career", label: "Career Development" },
-    { id: "projects", label: "Project Intelligence" },
     { id: "members", label: "Team Members" },
   ];
 
@@ -417,7 +368,9 @@ export default function YourTeam() {
   if (loading) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>Loading...</div>
+        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>
+          🔄 Loading...
+        </div>
         <p style={{ color: "#6b7280" }}>Loading your team dashboard...</p>
       </div>
     );
@@ -429,9 +382,23 @@ export default function YourTeam() {
         <div
           style={{ fontSize: "2rem", marginBottom: "1rem", color: "#ef4444" }}
         >
-          Error
+          ⚠️ Error
         </div>
         <p style={{ color: "#ef4444" }}>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: "1rem",
+            padding: "0.75rem 1.5rem",
+            background: "#ef4444",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -440,10 +407,11 @@ export default function YourTeam() {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
         <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>
-          No Team Data
+          👥 No Team Data
         </div>
         <p style={{ color: "#6b7280" }}>
-          No team members found for your account.
+          No team members found for your account. You may not have any direct
+          reports or the data hasn't been synced yet.
         </p>
       </div>
     );
@@ -454,8 +422,8 @@ export default function YourTeam() {
   const performanceDistribution = getPerformanceDistribution();
   const skillAnalytics = getSkillAnalytics();
   const learningAnalytics = getLearningAnalytics();
-  const careerAnalytics = getCareerAnalytics();
-  const projectAnalytics = getProjectAnalytics();
+  const skillsHeatmapData = createSkillsHeatmapData();
+  const enhancedPerformance = getEnhancedPerformanceAnalytics();
 
   return (
     <div style={{ margin: "0 0" }}>
@@ -497,7 +465,7 @@ export default function YourTeam() {
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div>
-          {/* Key Metrics Grid */}
+          {/* Key Metrics Grid - Removed Career Development */}
           <div
             style={{
               display: "grid",
@@ -514,7 +482,7 @@ export default function YourTeam() {
               }}
             >
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                KPI
+                📊 KPI
               </div>
               <div className="metric-number" style={{ color: "white" }}>
                 {kpiAnalytics.averageScore}
@@ -538,7 +506,7 @@ export default function YourTeam() {
               }}
             >
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                Team
+                👥 Team
               </div>
               <div className="metric-number" style={{ color: "white" }}>
                 {teamMembers.length}
@@ -550,7 +518,7 @@ export default function YourTeam() {
                 Total Members
               </p>
               <div style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
-                Active: {learningAnalytics.activelearners}
+                Active Learners: {learningAnalytics.activelearners}
               </div>
             </div>
 
@@ -562,7 +530,7 @@ export default function YourTeam() {
               }}
             >
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                Skills
+                🎯 Skills
               </div>
               <div className="metric-number" style={{ color: "white" }}>
                 {skillAnalytics.skillDistribution.length}
@@ -577,37 +545,13 @@ export default function YourTeam() {
                 Gaps: {skillAnalytics.skillGaps.length}
               </div>
             </div>
-
-            <div
-              className="card-dashboard"
-              style={{
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                color: "white",
-              }}
-            >
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                Projects
-              </div>
-              <div className="metric-number" style={{ color: "white" }}>
-                {projectAnalytics.activeProjects}
-              </div>
-              <p
-                className="metric-label"
-                style={{ color: "rgba(255,255,255,0.9)" }}
-              >
-                Active Projects
-              </p>
-              <div style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
-                Performance: {projectAnalytics.averagePerformance}
-              </div>
-            </div>
           </div>
 
-          {/* Quick Insights */}
+          {/* Quick Insights - Removed Career Development */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
               gap: "1.5rem",
             }}
           >
@@ -686,172 +630,110 @@ export default function YourTeam() {
                 </div>
               </div>
             </div>
-
-            <div className="card">
-              <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>
-                Career Development
-              </h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>Promotion Ready:</span>
-                  <span style={{ fontWeight: "600", color: "#8b5cf6" }}>
-                    {careerAnalytics.promotionCandidates.length}
-                  </span>
-                </div>
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>Career Goals Set:</span>
-                  <span style={{ fontWeight: "600", color: "#8b5cf6" }}>
-                    {Object.keys(careerAnalytics.careerGoals).length -
-                      (careerAnalytics.careerGoals["Not specified"] ? 1 : 0)}
-                  </span>
-                </div>
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>Succession Plans:</span>
-                  <span style={{ fontWeight: "600", color: "#8b5cf6" }}>
-                    {Object.keys(careerAnalytics.successionPlan).length}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}
 
       {activeTab === "performance" && (
         <div>
-          {/* Team KPI Dashboard */}
-          <KPIDashboard kpiData={kpiAnalytics.allKPIs} />
-
-          {/* Performance Distribution */}
-          <div className="card" style={{ marginTop: "2rem" }}>
+          {/* Enhanced Performance Distribution */}
+          <div className="card" style={{ marginBottom: "2rem" }}>
             <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Performance Distribution
+              Performance Distribution by Ranges
             </h3>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
                 gap: "1rem",
               }}
             >
-              <div
-                style={{
-                  background: "#dcfce7",
-                  borderRadius: "8px",
-                  padding: "1rem",
-                }}
-              >
-                <h4 style={{ color: "#166534", margin: "0 0 1rem 0" }}>
-                  Excellent ({performanceDistribution.excellent.length})
-                </h4>
-                {performanceDistribution.excellent.map((member, index) => (
+              {Object.entries(enhancedPerformance.performanceRanges).map(
+                ([range, members]) => (
                   <div
-                    key={index}
-                    style={{ marginBottom: "0.5rem", fontSize: "0.875rem" }}
+                    key={range}
+                    style={{
+                      padding: "1rem",
+                      background:
+                        range.includes("4.5") || range.includes("5.0")
+                          ? "#dcfce7"
+                          : range.includes("4.0")
+                          ? "#fef3c7"
+                          : range.includes("3.5")
+                          ? "#fef9e7"
+                          : range.includes("3.0")
+                          ? "#fef2e2"
+                          : range.includes("2.5")
+                          ? "#fecaca"
+                          : "#fee2e2",
+                      borderRadius: "8px",
+                      border: "1px solid #e5e7eb",
+                    }}
                   >
-                    <strong>{member.name}</strong> - {member.avgKPI}
-                  </div>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  background: "#fef3c7",
-                  borderRadius: "8px",
-                  padding: "1rem",
-                }}
-              >
-                <h4 style={{ color: "#92400e", margin: "0 0 1rem 0" }}>
-                  Good ({performanceDistribution.good.length})
-                </h4>
-                {performanceDistribution.good.map((member, index) => (
-                  <div
-                    key={index}
-                    style={{ marginBottom: "0.5rem", fontSize: "0.875rem" }}
-                  >
-                    <strong>{member.name}</strong> - {member.avgKPI}
-                  </div>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  background: "#fecaca",
-                  borderRadius: "8px",
-                  padding: "1rem",
-                }}
-              >
-                <h4 style={{ color: "#991b1b", margin: "0 0 1rem 0" }}>
-                  Needs Support (
-                  {performanceDistribution.needsImprovement.length})
-                </h4>
-                {performanceDistribution.needsImprovement.map(
-                  (member, index) => (
-                    <div
-                      key={index}
-                      style={{ marginBottom: "0.5rem", fontSize: "0.875rem" }}
+                    <h4
+                      style={{
+                        margin: "0 0 1rem 0",
+                        color:
+                          range.includes("4.5") || range.includes("5.0")
+                            ? "#166534"
+                            : range.includes("4.0")
+                            ? "#92400e"
+                            : range.includes("3.5")
+                            ? "#a16207"
+                            : range.includes("3.0")
+                            ? "#c2410c"
+                            : range.includes("2.5")
+                            ? "#991b1b"
+                            : "#7f1d1d",
+                      }}
                     >
-                      <strong>{member.name}</strong> - {member.avgKPI}
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Metric-Specific Analysis */}
-          <div className="card" style={{ marginTop: "2rem" }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              KPI Breakdown by Metric
-            </h3>
-            <div style={{ display: "grid", gap: "0.75rem" }}>
-              {kpiAnalytics.metricAverages.map((metric, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "1rem",
-                    background: "#f8fafc",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
-                  <span style={{ fontWeight: "500" }}>{metric.metric}</span>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: "600", fontSize: "1.1rem" }}>
-                      {metric.average}/5.0
-                    </div>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      {metric.count} evaluations
-                    </div>
+                      📊 {range} ({members.length})
+                    </h4>
+                    {members.length > 0 ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.25rem",
+                        }}
+                      >
+                        {members.map((member, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              fontSize: "0.875rem",
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <span>
+                              <strong>{member.name}</strong>
+                            </span>
+                            <span>{member.avgKPI}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "0.875rem",
+                          margin: 0,
+                        }}
+                      >
+                        No members in this range
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </div>
-        </div>
-      )}
 
-      {activeTab === "skills" && (
-        <div>
-          {/* Skills Heatmap */}
-          <div className="card" style={{ marginBottom: "2rem" }}>
+          {/* Individual Performance Metrics */}
+          <div className="card">
             <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Team Skills Heatmap
+              Individual Performance Overview
             </h3>
             <div
               style={{
@@ -861,7 +743,7 @@ export default function YourTeam() {
                 overflowY: "auto",
               }}
             >
-              {skillAnalytics.skillDistribution.map((skill, index) => (
+              {enhancedPerformance.memberPerformance.map((member, index) => (
                 <div
                   key={index}
                   style={{
@@ -882,46 +764,151 @@ export default function YourTeam() {
                         marginBottom: "0.25rem",
                       }}
                     >
-                      {skill.skill}
+                      {member.name}
                     </div>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      {skill.memberCount} members • {skill.coverage}% coverage
+                    <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                      Metrics: {Object.keys(member.kpiMetrics).length} evaluated
                     </div>
-                    {skill.experts.length > 0 && (
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#059669",
-                          marginTop: "0.25rem",
-                        }}
-                      >
-                        Experts: {skill.experts.join(", ")}
-                      </div>
-                    )}
                   </div>
                   <div
                     style={{
                       padding: "0.5rem 1rem",
                       background:
-                        skill.averageLevel >= 4
+                        member.avgKPI >= 4.0
                           ? "#dcfce7"
-                          : skill.averageLevel >= 3
+                          : member.avgKPI >= 3.0
                           ? "#fef3c7"
                           : "#fecaca",
                       color:
-                        skill.averageLevel >= 4
+                        member.avgKPI >= 4.0
                           ? "#166534"
-                          : skill.averageLevel >= 3
+                          : member.avgKPI >= 3.0
                           ? "#92400e"
                           : "#991b1b",
                       borderRadius: "12px",
                       fontWeight: "600",
+                      fontSize: "1.1rem",
                     }}
                   >
-                    Level {skill.averageLevel}
+                    {member.avgKPI}
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "skills" && (
+        <div>
+          {/* Skills Bubble Chart/Heatmap */}
+          <div className="card" style={{ marginBottom: "2rem" }}>
+            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
+              Team Skills Heatmap
+            </h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                gap: "1rem",
+                padding: "1rem",
+                background: "#f8fafc",
+                borderRadius: "8px",
+                maxHeight: "500px",
+                overflowY: "auto",
+              }}
+            >
+              {skillsHeatmapData.map((skill, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "1rem",
+                    borderRadius: "50%",
+                    background: skill.color,
+                    color: "white",
+                    fontSize: "0.75rem",
+                    fontWeight: "600",
+                    textAlign: "center",
+                    width: `${Math.max(60, skill.size)}px`,
+                    height: `${Math.max(60, skill.size)}px`,
+                    position: "relative",
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease",
+                    margin: "0 auto",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "scale(1)";
+                  }}
+                  title={`${skill.skill}: ${skill.memberCount}/${teamMembers.length} members (${skill.coverage}% coverage), Avg Level: ${skill.averageLevel}`}
+                >
+                  <div style={{ fontSize: "0.7rem" }}>{skill.skill}</div>
+                  <div style={{ fontSize: "0.9rem", fontWeight: "bold" }}>
+                    {skill.averageLevel}
+                  </div>
+                  <div style={{ fontSize: "0.6rem" }}>{skill.coverage}%</div>
+                </div>
+              ))}
+            </div>
+            <div
+              style={{
+                marginTop: "1rem",
+                display: "flex",
+                justifyContent: "center",
+                gap: "2rem",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "#10b981",
+                  }}
+                ></div>
+                <span style={{ fontSize: "0.875rem" }}>
+                  Expert Level (4.0+)
+                </span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "#f59e0b",
+                  }}
+                ></div>
+                <span style={{ fontSize: "0.875rem" }}>
+                  Intermediate (3.0-3.9)
+                </span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "#ef4444",
+                  }}
+                ></div>
+                <span style={{ fontSize: "0.875rem" }}>
+                  Beginner (Below 3.0)
+                </span>
+              </div>
             </div>
           </div>
 
@@ -955,7 +942,7 @@ export default function YourTeam() {
                   padding: "2rem",
                 }}
               >
-                No critical skill gaps identified
+                ✅ No critical skill gaps identified
               </p>
             )}
           </div>
@@ -975,7 +962,7 @@ export default function YourTeam() {
           >
             <div className="card-dashboard">
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Courses
+                📚 Courses
               </div>
               <div className="metric-number">
                 {learningAnalytics.completedCourses}
@@ -985,7 +972,7 @@ export default function YourTeam() {
 
             <div className="card-dashboard">
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Active
+                👨‍🎓 Active
               </div>
               <div className="metric-number">
                 {learningAnalytics.activelearners}
@@ -995,7 +982,7 @@ export default function YourTeam() {
 
             <div className="card-dashboard">
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Rate
+                📊 Rate
               </div>
               <div className="metric-number">
                 {learningAnalytics.engagementRate}%
@@ -1005,7 +992,7 @@ export default function YourTeam() {
 
             <div className="card-dashboard">
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Score
+                ⭐ Score
               </div>
               <div className="metric-number">
                 {learningAnalytics.averageScore}
@@ -1014,296 +1001,155 @@ export default function YourTeam() {
             </div>
           </div>
 
-          {/* Course Categories */}
+          {/* Expandable Course Categories */}
           <div className="card">
             <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
               Learning by Category
             </h3>
-            <div style={{ display: "grid", gap: "1rem" }}>
-              {Object.entries(learningAnalytics.coursesByCategory).map(
-                ([category, count]) => (
-                  <div
-                    key={category}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "1rem",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <span style={{ fontWeight: "500" }}>{category}</span>
-                    <span style={{ fontWeight: "600", color: "#3b82f6" }}>
-                      {count} courses completed
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "career" && (
-        <div>
-          {/* Promotion Candidates */}
-          <div className="card" style={{ marginBottom: "2rem" }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Promotion Readiness
-            </h3>
-            {careerAnalytics.promotionCandidates.length > 0 ? (
+            {Object.keys(learningAnalytics.coursesByCategory).length > 0 ? (
               <div style={{ display: "grid", gap: "1rem" }}>
-                {careerAnalytics.promotionCandidates.map((candidate, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      padding: "1rem",
-                      background: "#fef3c7",
-                      border: "1px solid #fde68a",
-                      borderRadius: "8px",
-                    }}
-                  >
+                {Object.entries(learningAnalytics.coursesByCategory).map(
+                  ([category, courses]) => (
                     <div
+                      key={category}
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        overflow: "hidden",
                       }}
                     >
-                      <div>
-                        <h4 style={{ margin: 0, color: "#92400e" }}>
-                          {candidate.name}
-                        </h4>
-                        <p
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "1rem",
+                          background: "#f8fafc",
+                          cursor: "pointer",
+                          borderBottom: expandedCategories[category]
+                            ? "1px solid #e5e7eb"
+                            : "none",
+                        }}
+                        onClick={() =>
+                          setExpandedCategories((prev) => ({
+                            ...prev,
+                            [category]: !prev[category],
+                          }))
+                        }
+                      >
+                        <div>
+                          <span style={{ fontWeight: "600" }}>{category}</span>
+                          <span
+                            style={{ marginLeft: "0.5rem", color: "#6b7280" }}
+                          >
+                            ({courses.length} courses)
+                          </span>
+                        </div>
+                        <div
                           style={{
-                            margin: 0,
+                            padding: "0.25rem 0.5rem",
+                            background: "#3b82f6",
+                            color: "white",
+                            borderRadius: "50%",
+                            width: "24px",
+                            height: "24px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             fontSize: "0.875rem",
-                            color: "#a16207",
                           }}
                         >
-                          Performance Score: {candidate.readinessScore}
-                        </p>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: "700", color: "#92400e" }}>
-                          {candidate.monthsEligible > 0
-                            ? `${candidate.monthsEligible} mo overdue`
-                            : "On track"}
+                          {expandedCategories[category] ? "−" : "+"}
                         </div>
                       </div>
+
+                      {expandedCategories[category] && (
+                        <div style={{ padding: "1rem", background: "white" }}>
+                          <div style={{ display: "grid", gap: "0.5rem" }}>
+                            {courses.map((course, index) => (
+                              <div
+                                key={index}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  padding: "0.75rem",
+                                  background: "#f9fafb",
+                                  borderRadius: "6px",
+                                  border: "1px solid #f3f4f6",
+                                }}
+                              >
+                                <div style={{ flex: 1 }}>
+                                  <div
+                                    style={{
+                                      fontWeight: "500",
+                                      color: "#374151",
+                                    }}
+                                  >
+                                    {course.courseName}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: "0.875rem",
+                                      color: "#6b7280",
+                                    }}
+                                  >
+                                    Completed by: {course.memberName}
+                                  </div>
+                                  {course.completionDate && (
+                                    <div
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        color: "#9ca3af",
+                                      }}
+                                    >
+                                      Completed:{" "}
+                                      {new Date(
+                                        course.completionDate
+                                      ).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                                {course.score && (
+                                  <div
+                                    style={{
+                                      padding: "0.25rem 0.75rem",
+                                      background:
+                                        course.score >= 4
+                                          ? "#dcfce7"
+                                          : course.score >= 3
+                                          ? "#fef3c7"
+                                          : "#fecaca",
+                                      color:
+                                        course.score >= 4
+                                          ? "#166534"
+                                          : course.score >= 3
+                                          ? "#92400e"
+                                          : "#991b1b",
+                                      borderRadius: "12px",
+                                      fontSize: "0.875rem",
+                                      fontWeight: "600",
+                                    }}
+                                  >
+                                    {course.score}/5
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             ) : (
-              <p
-                style={{
-                  color: "#6b7280",
-                  textAlign: "center",
-                  padding: "2rem",
-                }}
-              >
-                No team members are currently promotion-ready
-              </p>
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                <p style={{ color: "#6b7280" }}>
+                  No course completion data available.
+                </p>
+              </div>
             )}
-          </div>
-
-          {/* Career Goals */}
-          <div className="card" style={{ marginBottom: "2rem" }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Career Goal Distribution
-            </h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              {Object.entries(careerAnalytics.careerGoals).map(
-                ([goal, count]) => (
-                  <div
-                    key={goal}
-                    style={{
-                      textAlign: "center",
-                      padding: "1rem",
-                      background: "#f0f9ff",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "1.5rem",
-                        fontWeight: "700",
-                        color: "#0369a1",
-                      }}
-                    >
-                      {count}
-                    </div>
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#0c4a6e",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      {goal}
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Succession Planning */}
-          <div className="card">
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Succession Planning
-            </h3>
-            <div style={{ display: "grid", gap: "1rem" }}>
-              {Object.entries(careerAnalytics.successionPlan).map(
-                ([role, candidates]) => (
-                  <div
-                    key={role}
-                    style={{
-                      padding: "1rem",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <h4 style={{ margin: "0 0 0.5rem 0", color: "#374151" }}>
-                      {role}
-                    </h4>
-                    <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      Candidates: {candidates.map((c) => c.name).join(", ")}
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "projects" && (
-        <div>
-          {/* Project Overview */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "1.5rem",
-              marginBottom: "2rem",
-            }}
-          >
-            <div className="card-dashboard">
-              <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Active
-              </div>
-              <div className="metric-number">
-                {projectAnalytics.activeProjects}
-              </div>
-              <p className="metric-label">Projects</p>
-            </div>
-
-            <div className="card-dashboard">
-              <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Completed
-              </div>
-              <div className="metric-number">
-                {projectAnalytics.completedProjects}
-              </div>
-              <p className="metric-label">Projects</p>
-            </div>
-
-            <div className="card-dashboard">
-              <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-                Performance
-              </div>
-              <div className="metric-number">
-                {projectAnalytics.averagePerformance}
-              </div>
-              <p className="metric-label">Average Score</p>
-            </div>
-          </div>
-
-          {/* Resource Utilization */}
-          <div className="card" style={{ marginBottom: "2rem" }}>
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Resource Allocation
-            </h3>
-            <div style={{ display: "grid", gap: "0.75rem" }}>
-              {Object.entries(projectAnalytics.resourceUtilization).map(
-                ([member, utilization]) => (
-                  <div
-                    key={member}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0.75rem",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <span style={{ fontWeight: "500" }}>{member}</span>
-                    <div
-                      style={{
-                        padding: "0.25rem 0.75rem",
-                        background:
-                          utilization > 100
-                            ? "#fecaca"
-                            : utilization > 80
-                            ? "#fef3c7"
-                            : "#dcfce7",
-                        color:
-                          utilization > 100
-                            ? "#991b1b"
-                            : utilization > 80
-                            ? "#92400e"
-                            : "#166534",
-                        borderRadius: "12px",
-                        fontSize: "0.875rem",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {utilization}% allocated
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Skill Utilization */}
-          <div className="card">
-            <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-              Skill Utilization in Projects
-            </h3>
-            <div style={{ display: "grid", gap: "0.75rem" }}>
-              {Object.entries(projectAnalytics.skillUtilization).map(
-                ([skill, count]) => (
-                  <div
-                    key={skill}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0.75rem",
-                      background: "#f8fafc",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <span style={{ fontWeight: "500" }}>{skill}</span>
-                    <span style={{ color: "#6b7280" }}>
-                      Used in {count} project{count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
           </div>
         </div>
       )}
@@ -1318,7 +1164,6 @@ export default function YourTeam() {
             <div style={{ display: "grid", gap: "1rem" }}>
               {teamMembers.map((member) => {
                 const memberData = teamMembersData[member.emp_id];
-                const isLoading = loadingStates[member.emp_id];
                 const isExpanded = selectedMember === member.emp_id;
 
                 // Calculate member metrics
@@ -1417,11 +1262,13 @@ export default function YourTeam() {
                                 fontSize: "1.5rem",
                                 fontWeight: "700",
                                 color:
-                                  avgKPI >= 4
-                                    ? "#10b981"
-                                    : avgKPI >= 3
-                                    ? "#f59e0b"
-                                    : "#ef4444",
+                                  avgKPI !== "N/A"
+                                    ? avgKPI >= 4
+                                      ? "#10b981"
+                                      : avgKPI >= 3
+                                      ? "#f59e0b"
+                                      : "#ef4444"
+                                    : "#6b7280",
                               }}
                             >
                               {avgKPI}
@@ -1451,7 +1298,7 @@ export default function YourTeam() {
                       </div>
                     </div>
 
-                    {/* Expanded Details */}
+                    {/* Expanded Details - Moved Learning Stats to left, Projects to right */}
                     {isExpanded && (
                       <div
                         style={{
@@ -1462,17 +1309,7 @@ export default function YourTeam() {
                           borderRadius: "12px",
                         }}
                       >
-                        {isLoading ? (
-                          <div
-                            style={{
-                              textAlign: "center",
-                              padding: "2rem",
-                              color: "#6b7280",
-                            }}
-                          >
-                            Loading member details...
-                          </div>
-                        ) : memberData?.loaded ? (
+                        {memberData?.loaded ? (
                           <div
                             style={{
                               display: "grid",
@@ -1481,13 +1318,15 @@ export default function YourTeam() {
                             }}
                           >
                             <div>
-                              <Skills employeeData={memberData.employee} />
-                              <Projects projectsData={memberData.projects} />
-                            </div>
-                            <div>
                               <LearningStats
                                 completedCourses={memberData.courses}
                               />
+                              <div style={{ marginTop: "1rem" }}>
+                                <Skills employeeData={memberData.employee} />
+                              </div>
+                            </div>
+                            <div>
+                              <Projects projectsData={memberData.projects} />
                               {memberData.kpi && memberData.kpi.length > 0 && (
                                 <div style={{ marginTop: "1rem" }}>
                                   <KPIDashboard kpiData={memberData.kpi} />
@@ -1497,9 +1336,13 @@ export default function YourTeam() {
                           </div>
                         ) : (
                           <div
-                            style={{ textAlign: "center", color: "#ef4444" }}
+                            style={{
+                              textAlign: "center",
+                              color: "#ef4444",
+                              padding: "2rem",
+                            }}
                           >
-                            Error loading member data
+                            ⚠️ Error loading member data
                           </div>
                         )}
                       </div>

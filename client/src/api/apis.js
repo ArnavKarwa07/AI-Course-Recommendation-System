@@ -229,16 +229,6 @@ export function useChatAPI() {
   return { sendMessage, sendMessageStream };
 }
 
-export async function getTeamMembersAPI(managerId) {
-  try {
-    const response = await http.get(`/team/${managerId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching team members:", error);
-    throw error;
-  }
-}
-
 export function useOngoingCoursesAPI() {
   const { empId } = useAuth();
 
@@ -254,4 +244,75 @@ export function useOngoingCoursesAPI() {
   };
 
   return { getOngoingCourses };
+}
+
+export async function getTeamMembersAPI(managerId) {
+  try {
+    const response = await http.get(`/team/${managerId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching team members:", error);
+    throw error;
+  }
+}
+
+export async function getTeamAnalyticsAPI(managerId) {
+  try {
+    const response = await http.get(`/team-analytics/${managerId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching team analytics:", error);
+    throw error;
+  }
+}
+
+export async function getBulkEmployeeDataAPI(empIds) {
+  try {
+    const empIdsString = Array.isArray(empIds) ? empIds.join(',') : empIds;
+    const response = await http.get(`/bulk-employee-data?emp_ids=${empIdsString}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching bulk employee data:", error);
+    throw error;
+  }
+}
+
+export async function getEmployeeDetailsAPI(empId) {
+  try {
+    const response = await http.get(`/employee/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching employee details:", error);
+    throw error;
+  }
+}
+
+export async function getCourseCompletionAPI(empId) {
+  try {
+    const response = await http.get(`/completion/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching course completion:", error);
+    throw error;
+  }
+}
+
+export async function getKPIAPI(empId) {
+  try {
+    const response = await http.get(`/kpi/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching KPI:", error);
+    throw error;
+  }
+}
+
+export async function getProjectsAPI(empId) {
+  try {
+    const response = await http.get(`/projects/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    throw error;
+  }
 }
