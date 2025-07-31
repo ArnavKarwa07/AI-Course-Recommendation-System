@@ -6,7 +6,6 @@ export default function AIRoadmap({
   onRefresh,
   onGenerate,
 }) {
-  console.log("AIRoadmap received roadmapData:", roadmapData);
 
   return (
     <div className="card">

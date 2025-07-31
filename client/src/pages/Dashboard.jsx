@@ -78,9 +78,8 @@ export default function Dashboard() {
 
     setIsLoading(true);
     try {
-      console.log("Fetching roadmap for empId:", empId);
       const data = await recommendRoadmap();
-      console.log("Roadmap data received:", data);
+      // console.log("Roadmap data received:", data);
 
       // Check if the server returned an error
       if (data.error || (data.message && !data.output)) {
@@ -90,19 +89,18 @@ export default function Dashboard() {
         };
         setRoadmapData(errorData);
       } else {
-        // Debug: Log the structure we're setting
-        console.log("Setting roadmap data with structure:", {
-          hasOutput: !!data.output,
-          hasRoadmap: !!data.roadmap,
-          isArray: Array.isArray(data),
-          outputType: typeof data.output,
-          roadmapType: typeof data.roadmap,
-          fullData: data,
-        });
+        // console.log("Setting roadmap data with structure:", {
+        //   hasOutput: !!data.output,
+        //   hasRoadmap: !!data.roadmap,
+        //   isArray: Array.isArray(data),
+        //   outputType: typeof data.output,
+        //   roadmapType: typeof data.roadmap,
+        //   fullData: data,
+        // });
 
         setRoadmapData(data);
         setRoadmapLoaded(true);
-        console.log("Roadmap data set successfully:", data);
+        // console.log("Roadmap data set successfully:", data);
       }
     } catch (error) {
       console.error("Error fetching roadmap:", error);

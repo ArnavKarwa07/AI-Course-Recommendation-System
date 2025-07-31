@@ -147,6 +147,15 @@ def stream_chat_response(emp_id: int, message: str):
     finally:
         yield f"data: {json.dumps({'done': True})}\n\n"
 
+@router.get("/ongoing_courses/{emp_id}")
+def get_ongoing_courses(emp_id: int, db: Session = Depends(get_db)):
+    ongoing_courses = db.query(OngoingCourse).filter(OngoingCourse.emp_id == emp_id).all()
+    if not ongoing_courses:
+        raise HTTPException(status_code=404, detail="No ongoing courses found for this employee")
+    return {
+        "data": ongoing_courses,
+    }
+
 @router.get("/team/{manager_id}")
 def get_team_members(manager_id: int, db: Session = Depends(get_db)):
     try:
