@@ -303,8 +303,7 @@ export default function Analytics() {
                     flexWrap: "wrap",
                     gap: "0.4rem",
                     justifyContent: "center",
-                    maxHeight: "60px",
-                    overflow: "hidden",
+                    // Remove maxHeight and overflow hidden to show all gaps
                   }}
                 >
                   {getSkillGaps()

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -14,92 +14,316 @@ export default function ProjectReadiness() {
   const [error, setError] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
 
+  // Helper function to normalize skill names for comparison
+  const normalizeSkillName = (skillName) => {
+    return skillName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, "");
+  };
+
+  // Helper function to process member skills - handles JSON object format
+  const processMemberSkills = (memberSkills) => {
+    const skillsMap = {};
+
+    // Handle different skill data formats
+    if (!memberSkills) {
+      return skillsMap;
+    }
+
+    // If it's already an object (JSON from database)
+    if (typeof memberSkills === "object" && !Array.isArray(memberSkills)) {
+      Object.entries(memberSkills).forEach(([skillName, proficiency]) => {
+        if (skillName && skillName.trim()) {
+          const normalized = normalizeSkillName(skillName);
+          if (normalized) {
+            skillsMap[normalized] = {
+              originalName: skillName.trim(),
+              proficiency: parseInt(proficiency) || 0,
+            };
+          }
+        }
+      });
+      return skillsMap;
+    }
+
+    // Handle array format
+    let skillsArray = [];
+    if (Array.isArray(memberSkills)) {
+      skillsArray = memberSkills;
+    } else if (typeof memberSkills === "string" && memberSkills.trim()) {
+      // Handle comma-separated string format like "JavaScript(4), Python(3)"
+      skillsArray = memberSkills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    skillsArray.forEach((skill) => {
+      if (typeof skill === "string") {
+        // Parse skills like "JavaScript(4)" or "JavaScript 4"
+        const match = skill.match(/^(.+?)[\s(]*(\d+)[\s)]*$/);
+        if (match) {
+          const skillName = match[1].trim();
+          const proficiency = parseInt(match[2]) || 0;
+          const normalized = normalizeSkillName(skillName);
+          if (normalized) {
+            skillsMap[normalized] = {
+              originalName: skillName,
+              proficiency: proficiency,
+            };
+          }
+        } else {
+          // No proficiency specified, use default
+          const normalized = normalizeSkillName(skill);
+          if (normalized) {
+            skillsMap[normalized] = {
+              originalName: skill.trim(),
+              proficiency: 3, // default proficiency
+            };
+          }
+        }
+      }
+    });
+
+    return skillsMap;
+  };
+
   useEffect(() => {
     const fetchProjectsAndAssignments = async () => {
       setLoading(true);
       setError(null);
+
       try {
+        console.log("Fetching projects for manager:", empId);
         const projectsRes = await getManagerProjectsAPI(empId);
-        console.log("Manager Projects API response:", projectsRes);
+        console.log("Projects response:", projectsRes);
+
         const projects = Array.isArray(projectsRes.data)
           ? projectsRes.data
           : [];
+
         const projectsWithDetails = await Promise.all(
           projects.map(async (project) => {
             try {
+              console.log("Processing project:", project.project_name);
+
+              // Get project assignments
               const assignmentsRes = await getProjectAssignmentsAPI(
                 project.project_id
               );
               console.log(
-                `Assignments for project ${project.project_id}:`,
+                "Assignments response for",
+                project.project_name,
+                ":",
                 assignmentsRes
               );
+
               const assignedMembers = Array.isArray(assignmentsRes.data)
                 ? assignmentsRes.data
                 : [];
+
+              // Get required skills
               let requiredSkills = [];
               try {
                 const skillsRes = await getProjectSkillRequirementsAPI(
                   project.project_id
                 );
                 console.log(
-                  `Skills for project ${project.project_id}:`,
+                  "Skills response for",
+                  project.project_name,
+                  ":",
                   skillsRes
                 );
+
                 if (Array.isArray(skillsRes.data)) {
-                  requiredSkills = skillsRes.data;
+                  requiredSkills = skillsRes.data
+                    .map((skill) => {
+                      if (typeof skill === "object" && skill.skill_name) {
+                        return {
+                          name: skill.skill_name,
+                          required_level:
+                            skill.proficiency_level ||
+                            skill.required_level ||
+                            1,
+                        };
+                      } else if (typeof skill === "string") {
+                        return { name: skill.trim(), required_level: 1 };
+                      }
+                      return null;
+                    })
+                    .filter((skill) => skill && skill.name);
                 } else if (
                   skillsRes.data &&
                   typeof skillsRes.data === "object"
                 ) {
-                  requiredSkills = Object.keys(skillsRes.data);
-                } else {
-                  requiredSkills = [];
+                  // Handle when skills come as an object like {"JavaScript": 4, "Python": 3}
+                  requiredSkills = Object.entries(skillsRes.data).map(
+                    ([skillName, level]) => ({
+                      name: skillName,
+                      required_level: parseInt(level) || 1,
+                    })
+                  );
                 }
               } catch (err) {
-                requiredSkills = [];
                 console.warn(
-                  "Skill API failed for project",
+                  "Skills API failed for project",
                   project.project_id,
                   err
                 );
               }
-              // Defensive mapping for available skills
-              const availableSkills = {};
+
+              console.log(
+                "Required skills for",
+                project.project_name,
+                ":",
+                requiredSkills
+              );
+
+              // CREATE TOTAL AVAILABLE SKILLS OBJECT FROM ALL TEAM MEMBERS
+              const allAvailableSkills = {};
+
               assignedMembers.forEach((member) => {
-                let skillsArr = [];
-                if (Array.isArray(member.skills)) {
-                  skillsArr = member.skills;
-                } else if (typeof member.skills === "string" && member.skills) {
-                  skillsArr = member.skills
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean);
-                }
-                skillsArr.forEach((skill) => {
-                  if (typeof skill === "string" && skill.trim() !== "") {
-                    availableSkills[skill] = (availableSkills[skill] || 0) + 1;
+                console.log(
+                  "Processing member:",
+                  member.name,
+                  "Skills:",
+                  member.skills
+                );
+
+                const memberSkills = processMemberSkills(member.skills);
+                console.log("Processed member skills:", memberSkills);
+
+                // Add each member's skills to the total available skills
+                Object.keys(memberSkills).forEach((normalizedSkill) => {
+                  const skillData = memberSkills[normalizedSkill];
+
+                  if (!allAvailableSkills[normalizedSkill]) {
+                    allAvailableSkills[normalizedSkill] = {
+                      originalName: skillData.originalName,
+                      maxProficiency: 0,
+                      members: [],
+                    };
+                  }
+
+                  // Add this member to the skill
+                  allAvailableSkills[normalizedSkill].members.push({
+                    name: member.name,
+                    proficiency: skillData.proficiency,
+                  });
+
+                  // Update max proficiency if this member has higher skill level
+                  if (
+                    skillData.proficiency >
+                    allAvailableSkills[normalizedSkill].maxProficiency
+                  ) {
+                    allAvailableSkills[normalizedSkill].maxProficiency =
+                      skillData.proficiency;
                   }
                 });
               });
-              const skillsCovered = requiredSkills.filter(
-                (skill) => availableSkills[skill]
+
+              console.log(
+                "All available skills for",
+                project.project_name,
+                ":",
+                allAvailableSkills
               );
-              const readiness = requiredSkills.length
-                ? Math.round(
-                    (skillsCovered.length / requiredSkills.length) * 100
-                  )
-                : 100;
+
+              // ANALYZE SKILL COVERAGE WITH PARTIAL COMPLETION
+              const skillsAnalysis = requiredSkills.map((reqSkill) => {
+                const normalizedReqSkill = normalizeSkillName(reqSkill.name);
+                console.log(
+                  `\nAnalyzing skill: ${reqSkill.name} (normalized: ${normalizedReqSkill})`
+                );
+                console.log("Required level:", reqSkill.required_level);
+
+                // Check if this skill is available in the team
+                const availableSkill = allAvailableSkills[normalizedReqSkill];
+
+                if (availableSkill) {
+                  console.log("Found matching skill:", availableSkill);
+                  console.log(
+                    "Max available proficiency:",
+                    availableSkill.maxProficiency
+                  );
+
+                  // Calculate coverage percentage with partial completion
+                  const coveragePercentage = Math.min(
+                    100,
+                    Math.round(
+                      (availableSkill.maxProficiency /
+                        reqSkill.required_level) *
+                        100
+                    )
+                  );
+
+                  const isCovered =
+                    availableSkill.maxProficiency >= reqSkill.required_level;
+                  const proficiencyGap = Math.max(
+                    0,
+                    reqSkill.required_level - availableSkill.maxProficiency
+                  );
+
+                  console.log("Coverage percentage:", coveragePercentage);
+                  console.log("Is covered:", isCovered);
+
+                  return {
+                    name: reqSkill.name,
+                    required_level: reqSkill.required_level,
+                    available: availableSkill,
+                    maxAvailableProficiency: availableSkill.maxProficiency,
+                    isCovered,
+                    proficiencyGap,
+                    coveragePercentage,
+                  };
+                } else {
+                  console.log("No matching skill found in team");
+
+                  // Skill not available at all
+                  return {
+                    name: reqSkill.name,
+                    required_level: reqSkill.required_level,
+                    available: null,
+                    maxAvailableProficiency: 0,
+                    isCovered: false,
+                    proficiencyGap: reqSkill.required_level,
+                    coveragePercentage: 0,
+                  };
+                }
+              });
+
+              // Calculate overall project readiness
+              const overallReadiness =
+                requiredSkills.length > 0
+                  ? Math.round(
+                      skillsAnalysis.reduce(
+                        (sum, skill) => sum + skill.coveragePercentage,
+                        0
+                      ) / skillsAnalysis.length
+                    )
+                  : 100; // 100% if no skills required
+
+              const skillsCoveredCount = skillsAnalysis.filter(
+                (skill) => skill.isCovered
+              ).length;
+
+              console.log("Final analysis for", project.project_name, ":", {
+                skillsAnalysis,
+                overallReadiness,
+                skillsCoveredCount,
+              });
+
               return {
                 ...project,
                 assignedMembers,
                 requiredSkills,
-                availableSkills,
-                skillsCovered: skillsCovered.length,
-                readiness,
+                allAvailableSkills,
+                skillsAnalysis,
+                skillsCovered: skillsCoveredCount,
+                readiness: overallReadiness,
               };
             } catch (err) {
-              // If a single project fails, log and skip it
               console.error(
                 "Failed to load details for project",
                 project.project_id,
@@ -109,7 +333,7 @@ export default function ProjectReadiness() {
             }
           })
         );
-        // Filter out any nulls (failed projects)
+
         setUserProjects(projectsWithDetails.filter(Boolean));
       } catch (err) {
         setError("Failed to load project data");
@@ -179,7 +403,7 @@ export default function ProjectReadiness() {
             transition: "box-shadow 0.2s",
           }}
         >
-          {/* Collapsed Header */}
+          {/* Project Header */}
           <div
             style={{
               display: "flex",
@@ -244,10 +468,7 @@ export default function ProjectReadiness() {
                     marginBottom: "0.5rem",
                   }}
                 >
-                  {project.project_type || "General Project"}
-                </div>
-                <div style={{ color: "#374151", marginBottom: "0.5rem" }}>
-                  {project.description}
+                  Project ID: {project.project_id}
                 </div>
                 <div style={{ color: "#6b7280", fontSize: "0.95rem" }}>
                   <span>
@@ -262,7 +483,7 @@ export default function ProjectReadiness() {
                     <span
                       style={{
                         color:
-                          project.status === "Active" ? "#10b981" : "#92400e",
+                          project.status === "active" ? "#10b981" : "#92400e",
                         fontWeight: 600,
                       }}
                     >
@@ -271,107 +492,191 @@ export default function ProjectReadiness() {
                   </span>
                 </div>
               </div>
-
-              {/* Required Skills vs Available Skills */}
+              {/* Skills Analysis */}
               <div style={{ marginBottom: "2rem" }}>
                 <h4 style={{ margin: "0 0 0.75rem 0", color: "#374151" }}>
-                  Required Skills vs Available Skills
+                  Required Skills vs Available Skills{" "}
                 </h4>
                 <div
                   style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}
                 >
-                  {project.requiredSkills.map((skill) => (
-                    <div
-                      key={skill}
-                      style={{
-                        padding: "0.5rem 1rem",
-                        borderRadius: "20px",
-                        background: project.availableSkills[skill]
-                          ? "#dcfce7"
-                          : "#fee2e2",
-                        color: project.availableSkills[skill]
-                          ? "#166534"
-                          : "#991b1b",
-                        border: `1px solid ${
-                          project.availableSkills[skill] ? "#bbf7d0" : "#fecaca"
-                        }`,
-                        fontWeight: 500,
-                        fontSize: "0.95rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      {skill}
-                      {project.availableSkills[skill] ? (
-                        <span style={{ fontSize: "0.9rem" }}>
-                          ({project.availableSkills[skill]} member
-                          {project.availableSkills[skill] > 1 ? "s" : ""})
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: "0.9rem" }}>
-                          (Not covered)
-                        </span>
-                      )}
+                  {project.skillsAnalysis &&
+                  project.skillsAnalysis.length > 0 ? (
+                    project.skillsAnalysis.map((skill) => (
+                      <div
+                        key={skill.name}
+                        style={{
+                          padding: "0.75rem 1rem",
+                          borderRadius: "12px",
+                          background: skill.isCovered
+                            ? "#dcfce7"
+                            : skill.coveragePercentage > 0
+                            ? "#fef3c7"
+                            : "#fee2e2",
+                          color: skill.isCovered
+                            ? "#166534"
+                            : skill.coveragePercentage > 0
+                            ? "#92400e"
+                            : "#991b1b",
+                          border: `1px solid ${
+                            skill.isCovered
+                              ? "#bbf7d0"
+                              : skill.coveragePercentage > 0
+                              ? "#fde68a"
+                              : "#fecaca"
+                          }`,
+                          fontWeight: 500,
+                          fontSize: "0.9rem",
+                          minWidth: "200px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          <span style={{ fontWeight: 600 }}>{skill.name}</span>
+                          <span
+                            style={{
+                              fontSize: "0.8rem",
+                              fontWeight: 600,
+                              color:
+                                skill.coveragePercentage >= 100
+                                  ? "#059669"
+                                  : skill.coveragePercentage >= 50
+                                  ? "#d97706"
+                                  : "#dc2626",
+                            }}
+                          >
+                            {skill.coveragePercentage}%
+                          </span>
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          Required: Level {skill.required_level}
+                        </div>
+
+                        {skill.available ? (
+                          <div style={{ fontSize: "0.8rem" }}>
+                            <div style={{ marginBottom: "0.25rem" }}>
+                              Available:-{" "}
+                              <span style={{ opacity: 0.8 }}>
+                                {skill.available.members.length} member
+                                {skill.available.members.length > 1 ? "s" : ""}
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6b7280",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              {skill.available.members.map((member, idx) => (
+                                <span key={idx}>
+                                  {member.name} (L{member.proficiency})
+                                  {idx < skill.available.members.length - 1
+                                    ? ", "
+                                    : ""}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: "0.8rem", color: "#dc2626" }}>
+                            Not available - 0% match
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: "#6b7280", fontStyle: "italic" }}>
+                      No skill requirements defined for this project
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
-              {/* Assigned Team Members */}
+              {/* Team Members */}
               <div style={{ marginBottom: "2rem" }}>
                 <h4 style={{ margin: "0 0 0.75rem 0", color: "#374151" }}>
-                  Assigned Team Members
+                  Assigned Team Members ({project.assignedMembers?.length || 0}{" "}
+                  members)
                 </h4>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-                  {project.assignedMembers.length === 0 && (
-                    <span style={{ color: "#ef4444" }}>
-                      No team members assigned.
-                    </span>
-                  )}
-                  {project.assignedMembers.map((member) => (
-                    <div
-                      key={member.emp_id}
-                      style={{
-                        padding: "0.75rem 1.25rem",
-                        background: "#f3f4f6",
-                        borderRadius: "10px",
-                        border: "1px solid #e5e7eb",
-                        minWidth: "180px",
-                      }}
-                    >
-                      <div style={{ fontWeight: 600, color: "#374151" }}>
-                        {member.name}
-                      </div>
-                      <div style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-                        {member.role || member.assignment_role}
-                      </div>
+                  {project.assignedMembers &&
+                    project.assignedMembers.length === 0 && (
+                      <span style={{ color: "#ef4444" }}>
+                        No team members assigned.
+                      </span>
+                    )}
+                  {project.assignedMembers &&
+                    project.assignedMembers.map((member) => (
                       <div
+                        key={member.emp_id || member.id}
                         style={{
-                          color: "#6b7280",
-                          fontSize: "0.85rem",
-                          marginTop: "0.25rem",
+                          padding: "0.75rem 1.25rem",
+                          background: "#f3f4f6",
+                          borderRadius: "10px",
+                          border: "1px solid #e5e7eb",
+                          minWidth: "180px",
                         }}
                       >
-                        Skills:{" "}
-                        {(() => {
-                          if (Array.isArray(member.skills)) {
-                            return member.skills.join(", ") || "N/A";
-                          } else if (
-                            member.skills &&
-                            typeof member.skills === "object"
-                          ) {
-                            return (
-                              Object.keys(member.skills).join(", ") || "N/A"
+                        <div style={{ fontWeight: 600, color: "#374151" }}>
+                          {member.name || "Unknown"}
+                        </div>
+                        <div style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                          {member.role ||
+                            member.assignment_role ||
+                            "No role specified"}
+                        </div>
+                        <div
+                          style={{
+                            color: "#6b7280",
+                            fontSize: "0.85rem",
+                            marginTop: "0.25rem",
+                          }}
+                        >
+                          Skills:{" "}
+                          {(() => {
+                            if (!member.skills) return "N/A";
+
+                            // If it's an object, format it properly
+                            if (
+                              typeof member.skills === "object" &&
+                              !Array.isArray(member.skills)
+                            ) {
+                              return (
+                                Object.entries(member.skills)
+                                  .map(([skill, level]) => `${skill}(${level})`)
+                                  .join(", ") || "N/A"
+                              );
+                            }
+
+                            // Fallback for other formats
+                            const memberSkills = processMemberSkills(
+                              member.skills
                             );
-                          } else if (typeof member.skills === "string") {
-                            return member.skills;
-                          }
-                          return "N/A";
-                        })()}
+                            const skillsDisplay = Object.values(memberSkills)
+                              .map(
+                                (skill) =>
+                                  `${skill.originalName}(${skill.proficiency})`
+                              )
+                              .join(", ");
+                            return skillsDisplay || "N/A";
+                          })()}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 -- Create the database
 -- DROP DATABASE recom_dummy;
+
 CREATE DATABASE IF NOT EXISTS recom_dummy;
 USE recom_dummy;
 

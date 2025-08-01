@@ -11,9 +11,8 @@ export default function TeamOverview({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "2rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1rem",
         }}
       >
         <div
@@ -21,19 +20,23 @@ export default function TeamOverview({
           style={{
             background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
             color: "white",
+            padding: "1rem",
           }}
         >
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>KPI</div>
-          <div className="metric-number" style={{ color: "white" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>KPI</div>
+          <div
+            className="metric-number"
+            style={{ color: "white", fontSize: "1.8rem" }}
+          >
             {kpiAnalytics.averageScore}
           </div>
           <p
             className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
           >
             Team Average Score
           </p>
-          <div style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
+          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
             vs Benchmark: {kpiAnalytics.benchmark}
           </div>
         </div>
@@ -43,19 +46,23 @@ export default function TeamOverview({
           style={{
             background: "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
             color: "white",
+            padding: "1rem",
           }}
         >
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>Team</div>
-          <div className="metric-number" style={{ color: "white" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Team</div>
+          <div
+            className="metric-number"
+            style={{ color: "white", fontSize: "1.8rem" }}
+          >
             {teamMembers.length}
           </div>
           <p
             className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
           >
             Total Members
           </p>
-          <div style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
+          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
             Active Learners: {learningAnalytics.activelearners}
           </div>
         </div>
@@ -65,21 +72,23 @@ export default function TeamOverview({
           style={{
             background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
             color: "white",
+            padding: "1rem",
           }}
         >
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-            Skills
-          </div>
-          <div className="metric-number" style={{ color: "white" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Skills</div>
+          <div
+            className="metric-number"
+            style={{ color: "white", fontSize: "1.8rem" }}
+          >
             {skillAnalytics.skillDistribution.length}
           </div>
           <p
             className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
           >
             Unique Skills
           </p>
-          <div style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
+          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
             Individual Gaps: {skillAnalytics.individualSkillGaps.length}
           </div>
         </div>
@@ -95,7 +104,7 @@ export default function TeamOverview({
       >
         <div className="card">
           <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>
-            Performance Summary
+            KPI Summary
           </h3>
           <div
             style={{

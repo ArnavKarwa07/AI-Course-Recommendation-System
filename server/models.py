@@ -72,8 +72,9 @@ class Employee(Base):
 class KPI(Base):
     __tablename__ = "t_emp_kpi"
     
-    emp_id = Column(Integer, ForeignKey("m_emp.emp_id"), primary_key=True)
-    month = Column(Date, primary_key=True)
+    kpi_id = Column(Integer, primary_key=True, autoincrement=True)  # Add auto-increment ID
+    emp_id = Column(Integer, ForeignKey("m_emp.emp_id"))
+    month = Column(Date)
     kpi_metric = Column(String(100))
     kpi_score = Column(Float)
     review = Column(Text)
