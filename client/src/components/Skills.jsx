@@ -8,7 +8,7 @@ export default function Skills({ employeeData }) {
 
   return (
     <div className="card">
-      <h3 style={{ marginTop: 0 }}>Skills Assessment</h3>
+      <h3 style={{ marginTop: 0 }}>Skills</h3>
       {employeeData?.skills && Object.keys(employeeData.skills).length > 0 ? (
         <div
           style={{

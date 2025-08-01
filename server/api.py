@@ -149,12 +149,31 @@ def stream_chat_response(emp_id: int, message: str):
 
 @router.get("/ongoing_courses/{emp_id}")
 def get_ongoing_courses(emp_id: int, db: Session = Depends(get_db)):
-    ongoing_courses = db.query(OngoingCourse).filter(OngoingCourse.emp_id == emp_id).all()
+    # Join OngoingCourse with Course to get all required fields
+    ongoing_courses = (
+        db.query(OngoingCourse, Course)
+        .join(Course, OngoingCourse.course_id == Course.course_id)
+        .filter(OngoingCourse.emp_id == emp_id)
+        .all()
+    )
     if not ongoing_courses:
         raise HTTPException(status_code=404, detail="No ongoing courses found for this employee")
-    return {
-        "data": ongoing_courses,
-    }
+    
+    formatted_courses = []
+    for ongoing, course in ongoing_courses:
+        formatted_courses.append({
+            "title": ongoing.course_name,
+            "progress": ongoing.current_progress,
+            "description": "",  # Let frontend handle formatting
+            "courseId": ongoing.course_id,
+            "level": course.level,
+            "format": course.format,
+            "duration": float(course.duration) if course.duration else 0,
+            "category": course.category,
+            "startDate": ongoing.start_date.isoformat() if ongoing.start_date else None,
+            "skills": course.skills,
+        })
+    return {"data": formatted_courses}
 
 @router.get("/team/{manager_id}")
 def get_team_members(manager_id: int, db: Session = Depends(get_db)):
@@ -298,6 +317,9 @@ def get_bulk_employee_data(emp_ids: str, db: Session = Depends(get_db)):
             .all()
         )
         
+        # Get recommendation data - THIS IS THE MISSING PART
+        recommendations = db.query(Recommendation).filter(Recommendation.emp_id.in_(emp_id_list)).all()
+        
         # Organize data by employee
         employee_data = {}
         
@@ -320,7 +342,8 @@ def get_bulk_employee_data(emp_ids: str, db: Session = Depends(get_db)):
                 "kpi": [],
                 "courses": [],
                 "projects": [],
-                "ongoing_courses": []
+                "ongoing_courses": [],
+                "recommendations": None  # Add recommendations field
             }
         
         # Add KPI data
@@ -384,7 +407,77 @@ def get_bulk_employee_data(emp_ids: str, db: Session = Depends(get_db)):
                     "course_duration": float(course.duration) if course.duration else 0
                 })
         
+        # Add recommendation data
+        for rec in recommendations:
+            if rec.emp_id in employee_data:
+                # Get the most recent recommendation for each goal type
+                if employee_data[rec.emp_id]["recommendations"] is None:
+                    employee_data[rec.emp_id]["recommendations"] = {}
+                
+                employee_data[rec.emp_id]["recommendations"][rec.goal] = {
+                    "goal": rec.goal,
+                    "output": rec.output,
+                    "analysis": rec.analysis,
+                    "valid": rec.valid,
+                    "validation_summary": rec.validation_summary,
+                    "last_updated_time": rec.last_updated_time.isoformat() if rec.last_updated_time else None
+                }
+        
         return {"data": employee_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/projects/manager/{emp_id}")
+def get_manager_projects(emp_id: int, db: Session = Depends(get_db)):
+    """
+    Get all projects where the given employee is a manager (by manager_ids JSON field).
+    """
+    projects = db.query(Project).filter(Project.manager_ids.contains([emp_id])).all()
+    if not projects:
+        return {"data": [], "message": "No managed projects found"}
+    result = []
+    for project in projects:
+        result.append({
+            "project_id": project.project_id,
+            "project_name": project.project_name,
+            "start_date": project.start_date.isoformat() if project.start_date else None,
+            "status": project.status,
+            "manager_ids": project.manager_ids,
+        })
+    return {"data": result}
+
+@router.get("/projects/{project_id}/assignments")
+def get_project_assignments(project_id: int, db: Session = Depends(get_db)):
+    """
+    Get all team members assigned to a specific project.
+    """
+    assignments = (
+        db.query(EmployeeProject, Employee)
+        .join(Employee, EmployeeProject.emp_id == Employee.emp_id)
+        .filter(EmployeeProject.project_id == project_id)
+        .all()
+    )
+    if not assignments:
+        return {"data": [], "message": "No assignments found"}
+    result = []
+    for emp_proj, emp in assignments:
+        result.append({
+            "emp_id": emp.emp_id,
+            "name": emp.name,
+            "role": emp.role,
+            "assignment_role": emp_proj.role,
+            "assignment_date": getattr(emp_proj, "start_date", None),
+            "skills": emp.skills,
+        })
+    return {"data": result}
+
+@router.get("/projects/{project_id}/skills")
+def get_project_skill_requirements(project_id: int, db: Session = Depends(get_db)):
+    """
+    Get skill requirements for a specific project (from the project.skills field).
+    """
+    project = db.query(Project).filter(Project.project_id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"data": project.skills or []}
 

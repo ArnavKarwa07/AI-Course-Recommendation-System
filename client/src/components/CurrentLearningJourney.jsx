@@ -11,17 +11,13 @@ export default function CurrentLearningJourney({
 
   useEffect(() => {
     if (ongoingCoursesData && ongoingCoursesData.length > 0) {
+      // Use the data as-is, only generate description if missing
       const formattedCourses = ongoingCoursesData.map((course) => ({
-        title: course.course_name,
-        progress: course.current_progress,
-        description: formatDescription(course),
-        courseId: course.course_id,
-        level: course.course_level,
-        format: course.course_format,
-        duration: course.course_duration,
-        category: course.course_category,
-        startDate: course.start_date,
-        skills: course.course_skills,
+        ...course,
+        description:
+          course.description && course.description.length > 0
+            ? course.description
+            : formatDescription(course),
       }));
       setLearningItems(formattedCourses);
     } else {
@@ -30,14 +26,15 @@ export default function CurrentLearningJourney({
   }, [ongoingCoursesData]);
 
   const formatDescription = (course) => {
-    const remainingTime = calculateRemainingTime(
-      course.current_progress,
-      course.course_duration
-    );
-    const startDate = course.start_date
-      ? new Date(course.start_date).toLocaleDateString()
+    const progress = course.progress ?? 0;
+    const duration = course.duration ?? 1;
+    const level = course.level || "N/A";
+    const format = course.format || "N/A";
+    const startDate = course.startDate
+      ? new Date(course.startDate).toLocaleDateString()
       : "N/A";
-    return `${course.course_level} • ${course.course_format} • Started: ${startDate} • ${remainingTime} remaining`;
+    const remainingTime = calculateRemainingTime(progress, duration);
+    return `${level} • ${format} • Started: ${startDate} • ${remainingTime} remaining`;
   };
 
   const calculateRemainingTime = (progress, totalDuration) => {

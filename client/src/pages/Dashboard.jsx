@@ -63,7 +63,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error fetching ongoing courses:", error);
-      setOngoingCoursesError("Failed to load ongoing courses");
+      setOngoingCoursesError("No ongoing courses found or an error occurred.");
       setOngoingCoursesData([]);
     } finally {
       setOngoingCoursesLoading(false);

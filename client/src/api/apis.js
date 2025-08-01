@@ -268,8 +268,10 @@ export async function getTeamAnalyticsAPI(managerId) {
 
 export async function getBulkEmployeeDataAPI(empIds) {
   try {
-    const empIdsString = Array.isArray(empIds) ? empIds.join(',') : empIds;
-    const response = await http.get(`/bulk-employee-data?emp_ids=${empIdsString}`);
+    const empIdsString = Array.isArray(empIds) ? empIds.join(",") : empIds;
+    const response = await http.get(
+      `/bulk-employee-data?emp_ids=${empIdsString}`
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching bulk employee data:", error);
@@ -316,3 +318,38 @@ export async function getProjectsAPI(empId) {
     throw error;
   }
 }
+
+// New API functions
+
+// Get projects where user is a manager
+export const getManagerProjectsAPI = async (empId) => {
+  try {
+    const response = await http.get(`/projects/manager/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching manager projects:", error);
+    throw error;
+  }
+};
+
+// Get project assignments for specific project
+export const getProjectAssignmentsAPI = async (projectId) => {
+  try {
+    const response = await http.get(`/projects/${projectId}/assignments`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project assignments:", error);
+    throw error;
+  }
+};
+
+// Get project skill requirements
+export const getProjectSkillRequirementsAPI = async (projectId) => {
+  try {
+    const response = await http.get(`/projects/${projectId}/skills`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project skill requirements:", error);
+    throw error;
+  }
+};
