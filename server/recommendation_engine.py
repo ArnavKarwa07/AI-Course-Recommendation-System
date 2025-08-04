@@ -295,12 +295,11 @@ Action: Validate the {goal} output to ensure it meets all requirements, is appro
 Guardrails/Guidelines:
 - All recommended courses must exist in the provided course catalog
 - CRITICAL: None of the recommended courses should be in the employee's completed or ongoing courses
-- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
 - JSON format must be valid and complete
 - Reasoning must be 2-4 words and meaningful
 - Course progression must be logical and realistic
 - Validate against employee's current role and career level
-- For roadmap: check if skills_after_completion is realistic
+- For roadmap: check if skills_after_completion are realistic
 - Set valid to false if any recommended course is already completed or ongoing
 - Set valid to false only if there are critical issues
 
