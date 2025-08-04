@@ -2,9 +2,6 @@
 /* eslint-disable no-unused-vars */
 import {
   useRoadmapRecommendationAPI,
-  // useRefreshRoadmapAPI,
-  // useCourseRecommendationAPI,
-  // useRefreshCoursesAPI,
   useEmployeeDetailsAPI,
   useCourseCompletionAPI,
   useKPIAPI,
@@ -14,23 +11,13 @@ import {
 } from "../api/apis";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-// import ProfileHeader from "../components/ProfileHeader";
 import Skills from "../components/Skills";
-// import Projects from "../components/Projects";
-// import PersonalInformation from "../components/PersonalInformation";
-// import LearningProfile from "../components/LearningProfile";
 import LearningStats from "../components/LearningStats";
-// import CompletedCourses from "../components/CompletedCourses";
-// import AIRoadmap from "../components/AIRoadmap";
-// import RecommendedCourseCard from "../components/RecommendedCourseCard";
 import KPIDashboard from "../components/KPIDashboard";
 
 export default function Analytics() {
   const { empId } = useAuth();
   const { recommendRoadmap } = useRoadmapRecommendationAPI();
-  // const { refreshRoadmap } = useRefreshRoadmapAPI();
-  // const { recommendCourses } = useCourseRecommendationAPI();
-  // const { refreshCourses } = useRefreshCoursesAPI();
   const { getEmployeeDetails } = useEmployeeDetailsAPI();
   const { getCourseCompletion } = useCourseCompletionAPI();
   const { getKPI } = useKPIAPI();
@@ -68,7 +55,6 @@ export default function Analytics() {
           getCoursesAPI(),
           getRolesAPI(),
           recommendRoadmap(),
-          // recommendCourses(),
         ]);
 
         setEmployeeDetails(employeeResponse?.data || employeeResponse);

@@ -100,37 +100,87 @@ Please inform the user that they need to log in to access personalized recommend
     completed_courses = employee_data.get('completed_courses', [])
     recommendations = employee_data.get('recommendations', [])
     
-    # Build courses summary
+    # Build courses summary with proper error handling
     courses_summary = ""
     if completed_courses:
-        valid_scores = [course['score'] for course in completed_courses if isinstance(course['score'], (int, float)) and course['score'] is not None]
+        valid_scores = []
+        for course in completed_courses:
+            score = course.get('score')
+            if isinstance(score, (int, float)) and score is not None:
+                valid_scores.append(score)
+        
         avg_score = sum(valid_scores) / len(valid_scores) if valid_scores else 0
-        categories = list(set(course['category'] for course in completed_courses))
+        categories = list(set(str(course.get('category', 'Unknown')) for course in completed_courses if course.get('category')))
+        course_names = [str(course.get('name', 'Unknown')) for course in completed_courses[:3] if course.get('name')]
+        
         courses_summary = f"""
 Completed {len(completed_courses)} courses (avg score: {avg_score:.1f}/100)
 Categories: {', '.join(categories)}
-Recent courses: {', '.join([course['name'] for course in completed_courses[:3]])}"""
+Recent courses: {', '.join(course_names)}"""
     else:
         courses_summary = "No completed courses yet"
     
-    # Build recommendations summary
+    # Build recommendations summary with proper error handling
     rec_summary = ""
     if recommendations:
         latest_rec = recommendations[0]
         analysis = latest_rec.get('analysis', {})
-        skill_gaps = analysis.get('skill_gaps', [])
-        learning_prefs = analysis.get('learning_preferences', {})
+        
+        # Handle both dict and string analysis data
+        if isinstance(analysis, dict):
+            skill_gaps = analysis.get('skill_gaps', [])
+            learning_prefs = analysis.get('learning_preferences', {})
+        else:
+            skill_gaps = []
+            learning_prefs = {}
+        
+        # Safely handle skill gaps
+        if isinstance(skill_gaps, list):
+            skill_gaps_str = ', '.join(str(gap) for gap in skill_gaps)
+        else:
+            skill_gaps_str = 'None identified'
+        
+        # Safely handle learning preferences
+        if isinstance(learning_prefs, dict):
+            preferred_style = str(learning_prefs.get('preferred_style', 'Not specified'))
+        else:
+            preferred_style = 'Not specified'
+        
+        # Safely truncate recommendation output
+        output = latest_rec.get('output', '')
+        if isinstance(output, str) and len(output) > 200:
+            output_preview = output[:200] + "..."
+        elif isinstance(output, dict):
+            output_preview = str(output)[:200] + "..."
+        else:
+            output_preview = str(output)[:200] + "..."
         
         rec_summary = f"""
-Latest Career Goal: {latest_rec.get('goal', 'Not set')}
-Identified Skill Gaps: {', '.join(skill_gaps) if skill_gaps else 'None identified'}
-Learning Style: {learning_prefs.get('preferred_style', 'Not specified') if isinstance(learning_prefs, dict) else 'Not specified'}
-Recommendation: {latest_rec.get('output', '')[:200]}..."""
+Latest Career Goal: {str(latest_rec.get('goal', 'Not set'))}
+Identified Skill Gaps: {skill_gaps_str}
+Learning Style: {preferred_style}
+Recommendation: {output_preview}"""
     else:
         rec_summary = "No recommendations generated yet"
     
+    # Safely handle employee data with proper string conversion
+    employee_name = str(employee.get('name', 'the employee'))
+    employee_role = str(employee.get('role', 'Not specified'))
+    employee_dept = str(employee.get('dept', 'Not specified'))
+    
+    # Handle skills - can be dict, list, or string
+    skills = employee.get('skills', 'Not specified')
+    if isinstance(skills, dict):
+        skills_str = ', '.join(f"{k}: {v}" for k, v in skills.items())
+    elif isinstance(skills, list):
+        skills_str = ', '.join(str(skill) for skill in skills)
+    else:
+        skills_str = str(skills)
+    
+    career_goal = str(employee.get('career_goal', 'Not specified'))
+    
     return f"""
-You are SkillSense AI, a friendly and helpful learning assistant for {employee.get('name', 'the employee')}. 
+You are SkillSense AI, a friendly and helpful learning assistant for {employee_name}. 
 
 Your responses should be:
 - Conversational and natural, like talking to a colleague
@@ -146,10 +196,10 @@ IMPORTANT FORMATTING RULES:
 - Use natural language instead of structured technical formats
 
 EMPLOYEE CONTEXT:
-Name: {employee.get('name')}
-Role: {employee.get('role')} in {employee.get('dept')} department
-Current Skills: {employee.get('skills', 'Not specified')}
-Career Goal: {employee.get('career_goal', 'Not specified')}
+Name: {employee_name}
+Role: {employee_role} in {employee_dept} department
+Current Skills: {skills_str}
+Career Goal: {career_goal}
 
 LEARNING PROGRESS:
 {courses_summary}

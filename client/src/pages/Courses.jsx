@@ -25,11 +25,9 @@ export default function Courses() {
       try {
         setLoading(true);
         const response = await getCoursesAPI();
-        console.log("Fetched courses response:", response);
 
         // Handle the API response structure { data: courses }
         const coursesData = response?.data || [];
-        console.log("Extracted courses data:", coursesData);
 
         setAllCourses(coursesData);
       } catch (err) {
@@ -48,7 +46,6 @@ export default function Courses() {
       recommendedCourses.length > 0 &&
       recommendedCourses[0]?.course_id
     ) {
-      console.log("All courses loaded, re-filtering recommendations");
 
       // Check if we have raw recommendations (with course_id) that need filtering
       const hasRawRecommendations = recommendedCourses.some(
@@ -75,7 +72,6 @@ export default function Courses() {
           };
         });
 
-        console.log("Re-filtered recommended courses:", coursesWithReasons);
         setRecommendedCourses(coursesWithReasons);
       }
     }
@@ -97,13 +93,10 @@ export default function Courses() {
     setLoading(true);
     setRecommendationError(false);
     try {
-      console.log("Fetching course recommendations for empId:", empId);
       const response = await recommendCourses();
-      console.log("Recommendations response:", response);
 
       if (response?.valid) {
         const recommendations = response.output || [];
-        console.log("Extracted recommendations:", recommendations);
 
         // Check if recommendations is empty
         if (recommendations.length === 0) {
@@ -116,9 +109,6 @@ export default function Courses() {
 
         // If allCourses is empty, wait for it to be populated
         if (allCourses.length === 0) {
-          console.log(
-            "All courses not loaded yet, storing raw recommendations"
-          );
           setRecommendedCourses(recommendations);
           setRecommendationsLoaded(true);
           setActiveFilter("recommended");
@@ -155,7 +145,6 @@ export default function Courses() {
           };
         });
 
-        console.log("Filtered recommended courses:", coursesWithReasons);
         setRecommendedCourses(coursesWithReasons);
         setRecommendationsLoaded(true);
         setRecommendationError(false);
@@ -191,13 +180,10 @@ export default function Courses() {
     setLoading(true);
     setRecommendationError(false);
     try {
-      console.log("Refreshing course recommendations for empId:", empId);
       const response = await refreshCourses();
-      console.log("Refreshed recommendations response:", response);
 
       if (response?.valid) {
         const recommendations = response.output || [];
-        console.log("Extracted refreshed recommendations:", recommendations);
 
         // Check if recommendations is empty
         if (recommendations.length === 0) {
@@ -238,10 +224,6 @@ export default function Courses() {
           };
         });
 
-        console.log(
-          "Filtered refreshed recommended courses:",
-          coursesWithReasons
-        );
         setRecommendedCourses(coursesWithReasons);
         setRecommendationsLoaded(true);
         setRecommendationError(false);

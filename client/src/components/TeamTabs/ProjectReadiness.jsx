@@ -95,9 +95,7 @@ export default function ProjectReadiness() {
       setError(null);
 
       try {
-        console.log("Fetching projects for manager:", empId);
         const projectsRes = await getManagerProjectsAPI(empId);
-        console.log("Projects response:", projectsRes);
 
         const projects = Array.isArray(projectsRes.data)
           ? projectsRes.data
@@ -106,17 +104,9 @@ export default function ProjectReadiness() {
         const projectsWithDetails = await Promise.all(
           projects.map(async (project) => {
             try {
-              console.log("Processing project:", project.project_name);
-
               // Get project assignments
               const assignmentsRes = await getProjectAssignmentsAPI(
                 project.project_id
-              );
-              console.log(
-                "Assignments response for",
-                project.project_name,
-                ":",
-                assignmentsRes
               );
 
               const assignedMembers = Array.isArray(assignmentsRes.data)
@@ -128,12 +118,6 @@ export default function ProjectReadiness() {
               try {
                 const skillsRes = await getProjectSkillRequirementsAPI(
                   project.project_id
-                );
-                console.log(
-                  "Skills response for",
-                  project.project_name,
-                  ":",
-                  skillsRes
                 );
 
                 if (Array.isArray(skillsRes.data)) {
@@ -173,26 +157,11 @@ export default function ProjectReadiness() {
                 );
               }
 
-              console.log(
-                "Required skills for",
-                project.project_name,
-                ":",
-                requiredSkills
-              );
-
               // CREATE TOTAL AVAILABLE SKILLS OBJECT FROM ALL TEAM MEMBERS
               const allAvailableSkills = {};
 
               assignedMembers.forEach((member) => {
-                console.log(
-                  "Processing member:",
-                  member.name,
-                  "Skills:",
-                  member.skills
-                );
-
                 const memberSkills = processMemberSkills(member.skills);
-                console.log("Processed member skills:", memberSkills);
 
                 // Add each member's skills to the total available skills
                 Object.keys(memberSkills).forEach((normalizedSkill) => {
@@ -223,31 +192,13 @@ export default function ProjectReadiness() {
                 });
               });
 
-              console.log(
-                "All available skills for",
-                project.project_name,
-                ":",
-                allAvailableSkills
-              );
-
               // ANALYZE SKILL COVERAGE WITH PARTIAL COMPLETION
               const skillsAnalysis = requiredSkills.map((reqSkill) => {
                 const normalizedReqSkill = normalizeSkillName(reqSkill.name);
-                console.log(
-                  `\nAnalyzing skill: ${reqSkill.name} (normalized: ${normalizedReqSkill})`
-                );
-                console.log("Required level:", reqSkill.required_level);
-
                 // Check if this skill is available in the team
                 const availableSkill = allAvailableSkills[normalizedReqSkill];
 
                 if (availableSkill) {
-                  console.log("Found matching skill:", availableSkill);
-                  console.log(
-                    "Max available proficiency:",
-                    availableSkill.maxProficiency
-                  );
-
                   // Calculate coverage percentage with partial completion
                   const coveragePercentage = Math.min(
                     100,
@@ -265,9 +216,6 @@ export default function ProjectReadiness() {
                     reqSkill.required_level - availableSkill.maxProficiency
                   );
 
-                  console.log("Coverage percentage:", coveragePercentage);
-                  console.log("Is covered:", isCovered);
-
                   return {
                     name: reqSkill.name,
                     required_level: reqSkill.required_level,
@@ -278,8 +226,6 @@ export default function ProjectReadiness() {
                     coveragePercentage,
                   };
                 } else {
-                  console.log("No matching skill found in team");
-
                   // Skill not available at all
                   return {
                     name: reqSkill.name,
@@ -307,12 +253,6 @@ export default function ProjectReadiness() {
               const skillsCoveredCount = skillsAnalysis.filter(
                 (skill) => skill.isCovered
               ).length;
-
-              console.log("Final analysis for", project.project_name, ":", {
-                skillsAnalysis,
-                overallReadiness,
-                skillsCoveredCount,
-              });
 
               return {
                 ...project,

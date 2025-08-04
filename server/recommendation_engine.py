@@ -7,12 +7,11 @@ from typing import TypedDict, Dict, Any, Optional
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
-from langchain_groq import ChatGroq
+# from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 import time
 import httpx
 import re
-from IPython.display import display, Image
 from extract_json import extract_json_block
 
 # Load environment variables
@@ -68,11 +67,10 @@ def serialize(obj):
         return [serialize(item) for item in obj]
     return obj
 
-# Step 1: Collect user data (Updated for current schema)
+# Step 1: Collect user data
 def collect_user_data(state: AgentState) -> AgentState:
     emp_id = state["emp_id"]
     
-    # Get fresh database connection
     db, cursor = get_db_cursor()
     
     try:
@@ -87,11 +85,11 @@ def collect_user_data(state: AgentState) -> AgentState:
         cursor.execute("SELECT * FROM m_roles WHERE role_id = %s", (emp["role_id"],))
         emp["role_details"] = cursor.fetchone()
 
-        # Get KPI data (using current schema)
+        # Get KPI data
         cursor.execute("SELECT * FROM t_emp_kpi WHERE emp_id = %s ORDER BY month DESC", (emp_id,))
         emp["kpis"] = cursor.fetchall()
 
-        # Get project data with project details (using current schema)
+        # Get project data
         cursor.execute("""
             SELECT ep.*, p.project_name, p.client, p.duration as project_duration, 
                    p.start_date as project_start_date, p.status as project_status
@@ -101,11 +99,11 @@ def collect_user_data(state: AgentState) -> AgentState:
         """, (emp_id,))
         emp["projects"] = cursor.fetchall()
 
-        # Get course completion data (using current schema)
+        # Get course completion data
         cursor.execute("SELECT * FROM t_course_completion WHERE emp_id = %s", (emp_id,))
         emp["courses"] = cursor.fetchall()
 
-        # Get ongoing courses (using current schema)
+        # Get ongoing courses
         cursor.execute("""
             SELECT oc.*, c.name as course_name, c.category
             FROM t_ongoing_courses oc
@@ -120,7 +118,7 @@ def collect_user_data(state: AgentState) -> AgentState:
         cursor.close()
         db.close()
 
-# Step 2: Analyze user (Updated for current schema fields)
+# Step 2: Analyze user data
 def analyze_user_data(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
 
@@ -151,18 +149,16 @@ Employee Data:
     state["llm_analysis"] = result.content
     return state
 
-# Step 3: Generate output (Updated with skills prediction for roadmap)
+# Step 3: Generate output
 def generate_output(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
     analysis = state["llm_analysis"]
     goal = state["goal"]
     
-    # Check if this is a retry with validation feedback
     validation_feedback = ""
     if state.get("retry_count", 0) > 0 and "validation_summary" in state:
         validation_feedback = f"\n\nPrevious attempt failed validation. Please address these issues:\n{state['validation_summary']}\n"
 
-    # Get fresh database connection
     db, cursor = get_db_cursor()
     
     try:
@@ -258,14 +254,13 @@ Available Courses:
         cursor.close()
         db.close()
 
-# Step 4: Validate output (Updated for new schema)
+# Step 4: Validate output
 def validate_output(state: AgentState) -> AgentState:
     emp = serialize(state["user_data"])
     analysis = state["llm_analysis"]
     output = state["output"]
     goal = state["goal"]
     
-    # Get fresh database connection
     db, cursor = get_db_cursor()
     
     try:
@@ -309,7 +304,7 @@ Output to Validate:
             check = extract_json_block(result.content)
             state["is_valid"] = check["valid"]
         except:
-            state["is_valid"] = True  # Assume valid if parsing fails
+            state["is_valid"] = True
 
         state["validation_summary"] = result.content
         return state
@@ -317,19 +312,16 @@ Output to Validate:
         cursor.close()
         db.close()
 
-# Step 5: Final output
 def final_output(state: AgentState) -> AgentState:
     return state
 
 def fallback_output(state: AgentState) -> AgentState:
     return state
 
-# Add a new retry node
 def retry_analysis(state: AgentState) -> AgentState:
     state["retry_count"] = 1
     return state
 
-# LangGraph setup (unchanged)
 def build_graph():
     builder = StateGraph(AgentState)
 

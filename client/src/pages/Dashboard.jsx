@@ -52,9 +52,7 @@ export default function Dashboard() {
     setOngoingCoursesError(null);
 
     try {
-      console.log("Fetching ongoing courses for empId:", empId);
       const response = await getOngoingCourses();
-      console.log("Ongoing courses data received:", response);
 
       if (response.data && response.data.length > 0) {
         setOngoingCoursesData(response.data);
@@ -79,7 +77,6 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const data = await recommendRoadmap();
-      // console.log("Roadmap data received:", data);
 
       // Check if the server returned an error
       if (data.error || (data.message && !data.output)) {
@@ -89,18 +86,8 @@ export default function Dashboard() {
         };
         setRoadmapData(errorData);
       } else {
-        // console.log("Setting roadmap data with structure:", {
-        //   hasOutput: !!data.output,
-        //   hasRoadmap: !!data.roadmap,
-        //   isArray: Array.isArray(data),
-        //   outputType: typeof data.output,
-        //   roadmapType: typeof data.roadmap,
-        //   fullData: data,
-        // });
-
         setRoadmapData(data);
         setRoadmapLoaded(true);
-        // console.log("Roadmap data set successfully:", data);
       }
     } catch (error) {
       console.error("Error fetching roadmap:", error);
@@ -120,9 +107,7 @@ export default function Dashboard() {
 
     setIsLoading(true);
     try {
-      console.log("Refreshing roadmap for empId:", empId);
       const data = await refreshRoadmap();
-      console.log("Refreshed roadmap data received:", data);
 
       // Check if the server returned an error
       if (data.error || (data.message && !data.output)) {
@@ -132,10 +117,8 @@ export default function Dashboard() {
         };
         setRoadmapData(errorData);
       } else {
-        console.log("Setting refreshed roadmap data:", data);
         setRoadmapData(data);
         setRoadmapLoaded(true);
-        console.log("Refreshed roadmap data set successfully:", data);
       }
     } catch (error) {
       console.error("Error refreshing roadmap:", error);

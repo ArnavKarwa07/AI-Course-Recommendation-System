@@ -202,13 +202,6 @@ export default function YourTeam() {
         skillsAfterCompletion: null,
       };
 
-      // DEBUG: Log the recommendations data structure
-      console.log(`Debugging ${member.name} (${member.emp_id}):`, {
-        hasRecommendations: !!memberData?.recommendations,
-        recommendations: memberData?.recommendations,
-        memberData: memberData,
-      });
-
       // Get skill gaps from recommendations data - ENHANCED
       const recommendations = memberData?.recommendations;
       if (recommendations) {
@@ -216,19 +209,11 @@ export default function YourTeam() {
         const roadmapRec = recommendations?.roadmap;
         const coursesRec = recommendations?.courses;
 
-        console.log(`${member.name} recommendations:`, {
-          roadmapRec,
-          coursesRec,
-          roadmapAnalysis: roadmapRec?.analysis,
-          coursesAnalysis: coursesRec?.analysis,
-        });
-
         // Get skill gaps from either roadmap or courses recommendation
         const analysisData = roadmapRec?.analysis || coursesRec?.analysis;
 
         if (analysisData?.skill_gaps) {
           const skillGaps = analysisData.skill_gaps;
-          console.log(`${member.name} skill gaps:`, skillGaps);
 
           // Transform skill gaps data
           if (Array.isArray(skillGaps)) {
@@ -264,10 +249,6 @@ export default function YourTeam() {
 
         // Alternative: Check if skill_gaps is directly in recommendations
         if (!analysisData?.skill_gaps && recommendations.skill_gaps) {
-          console.log(
-            `${member.name} direct skill gaps:`,
-            recommendations.skill_gaps
-          );
           recommendations.skill_gaps.forEach((gap) => {
             if (typeof gap === "string") {
               individualSkillGaps[member.emp_id].gaps.push({
@@ -329,8 +310,6 @@ export default function YourTeam() {
     const finalSkillGaps = Object.values(individualSkillGaps).filter(
       (member) => member.gaps.length > 0
     );
-
-    console.log("Final Individual Skill Gaps:", finalSkillGaps);
 
     return {
       skillDistribution,

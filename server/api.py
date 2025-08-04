@@ -6,7 +6,6 @@ from db import get_db
 import json
 from chatbot import process_chat_message
 from fastapi.responses import JSONResponse, StreamingResponse
-from datetime import datetime
 
 router = APIRouter()
 

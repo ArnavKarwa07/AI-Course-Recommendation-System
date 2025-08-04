@@ -20,15 +20,7 @@ button {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   margin-bottom: 1rem;
 }
-.pre {
-  background: #f3f4f6;
-  padding: 1rem;
-  border-radius: 6px;
-}
 
-.test {
-  color: #63dede;
-}
 .card-dashboard {
   background: #fff;
   padding: 2em;
@@ -146,34 +138,6 @@ button {
   color: #6b7280;
   margin: 0;
   font-size: 0.75rem;
-}
-
-/* AI Tutor section */
-.ai-tutor {
-  text-align: center;
-}
-
-.ai-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-}
-
-.ai-message {
-  background: #f3f4f6;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  text-align: left;
-  color: #4b5563;
-  font-size: 0.875rem;
-  line-height: 1.5;
 }
 
 /* Two column layout for dashboard */
