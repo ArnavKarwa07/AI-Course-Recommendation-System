@@ -1,4 +1,4 @@
-import KPIDashboard from "../../Shared/KPIDashboard";
+import KPIDashboard from "../Shared/KPIDashboard";
 
 export default function TeamPerformance({
   enhancedPerformance,

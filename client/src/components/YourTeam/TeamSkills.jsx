@@ -287,8 +287,7 @@ export default function TeamSkills({
             fontStyle: "italic",
           }}
         >
-          Bubble size represents skill coverage • Hover for detailed
-          information
+          Bubble size represents skill coverage • Hover for detailed information
         </div>
       </div>
 
