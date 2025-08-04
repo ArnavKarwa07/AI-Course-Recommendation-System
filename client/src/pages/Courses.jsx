@@ -436,7 +436,7 @@ export default function Courses() {
             }
           }}
         >
-          🎯 Recommended Courses
+          AI Recommended Courses
         </button>
         <div
           style={{

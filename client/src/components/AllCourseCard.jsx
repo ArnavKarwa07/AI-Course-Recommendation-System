@@ -17,16 +17,14 @@ export default function AllCourseCard({ course }) {
           "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)";
         e.currentTarget.style.borderColor = "#0ea5e9";
         e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow =
-          "0 4px 15px rgba(0, 0, 0, 0.12)";
+        e.currentTarget.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.12)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background =
           "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)";
         e.currentTarget.style.borderColor = "#e2e8f0";
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow =
-          "0 1px 3px rgba(0, 0, 0, 0.1)";
+        e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
       }}
     >
       {/* Header with title */}
@@ -254,19 +252,19 @@ export default function AllCourseCard({ course }) {
       )}
 
       {/* Prerequisites */}
-      {course.prerequisite_skills && (
-        <div style={{ marginBottom: "0.75rem" }}>
-          <p
-            style={{
-              margin: "0 0 0.4rem 0",
-              fontSize: "0.7rem",
-              color: "#6b7280",
-              fontWeight: "500",
-            }}
-          >
-            📋 Prerequisites
-          </p>
-          {typeof course.prerequisite_skills === "string" ? (
+      <div style={{ marginBottom: "0.75rem" }}>
+        <p
+          style={{
+            margin: "0 0 0.4rem 0",
+            fontSize: "0.7rem",
+            color: "#6b7280",
+            fontWeight: "500",
+          }}
+        >
+          📋 Prerequisites
+        </p>
+        {course.prerequisite_skills ? (
+          typeof course.prerequisite_skills === "string" ? (
             <p
               style={{
                 margin: 0,
@@ -277,7 +275,8 @@ export default function AllCourseCard({ course }) {
               {course.prerequisite_skills}
             </p>
           ) : typeof course.prerequisite_skills === "object" &&
-            course.prerequisite_skills !== null ? (
+            course.prerequisite_skills !== null &&
+            Object.keys(course.prerequisite_skills).length > 0 ? (
             <div
               style={{
                 display: "flex",
@@ -309,14 +308,26 @@ export default function AllCourseCard({ course }) {
               style={{
                 margin: 0,
                 fontSize: "0.8rem",
-                color: "#374151",
+                color: "#9ca3af",
+                fontStyle: "italic",
               }}
             >
-              {String(course.prerequisite_skills)}
+              None
             </p>
-          )}
-        </div>
-      )}
+          )
+        ) : (
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.8rem",
+              color: "#9ca3af",
+              fontStyle: "italic",
+            }}
+          >
+            None
+          </p>
+        )}
+      </div>
 
       {/* Enroll Button */}
       <div
