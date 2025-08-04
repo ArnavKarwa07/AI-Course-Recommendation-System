@@ -11,9 +11,9 @@ import {
 } from "../api/apis";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-import Skills from "../components/Skills";
-import LearningStats from "../components/LearningStats";
-import KPIDashboard from "../components/KPIDashboard";
+import Skills from "../components/Shared/Skills";
+import LearningStats from "../components/Shared/LearningStats";
+import KPIDashboard from "../components/Shared/KPIDashboard";
 
 export default function Analytics() {
   const { empId } = useAuth();

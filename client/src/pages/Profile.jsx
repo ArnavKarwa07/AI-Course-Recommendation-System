@@ -7,13 +7,13 @@ import {
   useKPIAPI,
   useProjectsAPI,
 } from "../api/apis";
-import ProfileHeader from "../components/ProfileHeader";
-import Skills from "../components/Skills";
-import Projects from "../components/Projects";
-import PersonalInformation from "../components/PersonalInformation";
-import LearningProfile from "../components/LearningProfile";
-import KPIs from "../components/KPIs";
-import CompletedCourses from "../components/CompletedCourses";
+import ProfileHeader from "../components/Profile/ProfileHeader";
+import Skills from "../components/Shared/Skills";
+import Projects from "../components/Shared/Projects";
+import PersonalInformation from "../components/Profile/PersonalInformation";
+import LearningProfile from "../components/Profile/LearningProfile";
+import KPIs from "../components/Profile/KPIs";
+import CompletedCourses from "../components/Profile/CompletedCourses";
 
 export default function Profile() {
   const { empId } = useAuth();

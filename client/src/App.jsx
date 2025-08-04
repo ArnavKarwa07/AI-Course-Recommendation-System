@@ -1,8 +1,8 @@
 import { useAuth } from "./context/AuthContext";
 import { Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import ChatBot from "./components/ChatBot";
+import Navbar from "./components/Layout/Navbar";
+import Footer from "./components/Layout/Footer";
+import ChatBot from "./components/Layout/ChatBot";
 
 export default function App({ children }) {
   const { empId } = useAuth();

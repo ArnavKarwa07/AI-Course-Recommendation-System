@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import {
   getManagerProjectsAPI,
   getProjectAssignmentsAPI,
   getProjectSkillRequirementsAPI,
-} from "../../api/apis";
+} from "../../../api/apis";
 
 export default function ProjectReadiness() {
   const { empId } = useAuth();

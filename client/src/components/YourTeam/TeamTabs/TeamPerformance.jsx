@@ -1,4 +1,4 @@
-import KPIDashboard from "../KPIDashboard";
+import KPIDashboard from "../../Shared/KPIDashboard";
 
 export default function TeamPerformance({
   enhancedPerformance,
@@ -213,7 +213,7 @@ export default function TeamPerformance({
                             fontSize: "1.1rem",
                           }}
                         >
-                          📊 Detailed KPI Analysis for {member.name}
+                          KPI Analysis for {member.name}
                         </h4>
                         <div
                           style={{

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useChatAPI } from "../api/apis";
+import { useChatAPI } from "../../api/apis";
 import SendIcon from "@mui/icons-material/Send";
 import "./ChatBot.css";
 

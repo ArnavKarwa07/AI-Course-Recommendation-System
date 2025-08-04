@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import ProgressBar from "./ProgressBar";
+import ProgressBar from "../Shared/ProgressBar";
 
 export default function CurrentLearningJourney({
   ongoingCoursesData,

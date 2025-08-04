@@ -1,6 +1,6 @@
-import LearningStats from "../LearningStats";
-import Skills from "../Skills";
-import Projects from "../Projects";
+import LearningStats from "../../Shared/LearningStats";
+import Skills from "../../Shared/Skills";
+import Projects from "../../Shared/Projects";
 
 export default function TeamMembers({
   teamMembers,

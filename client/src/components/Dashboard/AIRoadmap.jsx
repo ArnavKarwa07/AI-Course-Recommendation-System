@@ -1,4 +1,4 @@
-import RoadmapTimeline from "./RoadmapTimeline";
+import RoadmapTimeline from "../Dashboard/RoadmapTimeline.jsx";
 
 export default function AIRoadmap({
   roadmapData,

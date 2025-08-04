@@ -5,8 +5,8 @@ import {
   useRefreshCoursesAPI,
 } from "../api/apis";
 import { useAuth } from "../context/AuthContext";
-import AllCourseCard from "../components/AllCourseCard";
-import RecommendedCourseCard from "../components/RecommendedCourseCard";
+import AllCourseCard from "../components/Courses/AllCourseCard";
+import RecommendedCourseCard from "../components/Courses/RecommendedCourseCard";
 
 export default function Courses() {
   const { empId } = useAuth();
@@ -46,7 +46,6 @@ export default function Courses() {
       recommendedCourses.length > 0 &&
       recommendedCourses[0]?.course_id
     ) {
-
       // Check if we have raw recommendations (with course_id) that need filtering
       const hasRawRecommendations = recommendedCourses.some(
         (rec) => rec.course_id && !rec.name

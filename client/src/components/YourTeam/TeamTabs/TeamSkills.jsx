@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
@@ -239,7 +238,7 @@ export default function TeamSkills({
                 fontSize: window.innerWidth < 768 ? "0.75rem" : "0.875rem",
               }}
             >
-              Expert Level (4.0+)
+              Expert Level (4.0)
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -288,7 +287,7 @@ export default function TeamSkills({
             fontStyle: "italic",
           }}
         >
-          Bubble size represents skill importance • Hover for detailed
+          Bubble size represents skill coverage • Hover for detailed
           information
         </div>
       </div>

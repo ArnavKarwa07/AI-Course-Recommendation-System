@@ -10,11 +10,11 @@ import {
 } from "../api/apis";
 
 // Import tab components
-import TeamOverview from "../components/TeamTabs/TeamOverview";
-import TeamPerformance from "../components/TeamTabs/TeamPerformance";
-import TeamSkills from "../components/TeamTabs/TeamSkills";
-import TeamMembers from "../components/TeamTabs/TeamMembers";
-import ProjectReadiness from "../components/TeamTabs/ProjectReadiness";
+import TeamOverview from "../components/YourTeam/TeamTabs/TeamOverview";
+import TeamPerformance from "../components/YourTeam/TeamTabs/TeamPerformance";
+import TeamSkills from "../components/YourTeam/TeamTabs/TeamSkills";
+import TeamMembers from "../components/YourTeam/TeamTabs/TeamMembers";
+import ProjectReadiness from "../components/YourTeam/TeamTabs/ProjectReadiness";
 
 export default function YourTeam() {
   const { empId } = useAuth();

@@ -6,12 +6,12 @@ import {
 } from "../api/apis";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect, useCallback } from "react";
-import WelcomeHeader from "../components/WelcomeHeader";
-import StatsCards from "../components/StatsCards";
-import CurrentLearningJourney from "../components/CurrentLearningJourney";
-import AIRoadmap from "../components/AIRoadmap";
-import LearningStreak from "../components/LearningStreak";
-import Achievements from "../components/Achievements";
+import WelcomeHeader from "../components/Dashboard/WelcomeHeader";
+import StatsCards from "../components/Dashboard/StatsCards";
+import CurrentLearningJourney from "../components/Dashboard/CurrentLearningJourney";
+import AIRoadmap from "../components/Dashboard/AIRoadmap";
+import LearningStreak from "../components/Dashboard/LearningStreak";
+import Achievements from "../components/Dashboard/Achievements";
 
 export default function Dashboard() {
   const { empId } = useAuth();

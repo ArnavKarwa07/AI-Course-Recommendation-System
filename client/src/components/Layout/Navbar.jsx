@@ -1,8 +1,7 @@
-/* eslint-disable no-unused-vars */
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
-import { getTeamMembersAPI } from "../api/apis";
+import { getTeamMembersAPI } from "../../api/apis";
 import "./Navbar.css";
 import HomeIcon from "@mui/icons-material/Home";
 import PersonIcon from "@mui/icons-material/Person";
