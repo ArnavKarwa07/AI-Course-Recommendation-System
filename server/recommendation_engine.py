@@ -165,6 +165,11 @@ def generate_output(state: AgentState) -> AgentState:
         cursor.execute("SELECT * FROM m_courses")
         courses = cursor.fetchall()
 
+        # Get completed and ongoing course IDs for the employee
+        completed_course_ids = [course['course_id'] for course in emp.get('courses', [])]
+        ongoing_course_ids = [course['course_id'] for course in emp.get('ongoing_courses', [])]
+        excluded_course_ids = completed_course_ids + ongoing_course_ids
+
         if goal == "roadmap":
             prompt = f"""
 Role: You are a learning and development specialist who creates personalized skill development roadmaps for employees.
@@ -173,7 +178,9 @@ Action: Generate a comprehensive skill development roadmap using available cours
 
 Guardrails/Guidelines:
 - Use only courses from the provided course catalog
-- Recommend 2-4 courses
+- CRITICAL: Do NOT recommend courses that the employee has already completed or is currently enrolled in
+- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
+- Recommend 2-4 courses from the remaining available courses
 - Ensure logical progression from foundational to advanced topics
 - Consider realistic timelines and employee workload
 - Prioritize courses that address critical skill gaps first
@@ -211,6 +218,9 @@ Employee Data:
 
 Available Courses:
 {courses}
+
+Employee's Completed Courses: {completed_course_ids}
+Employee's Ongoing Courses: {ongoing_course_ids}
 """
         else:
             prompt = f"""
@@ -220,7 +230,9 @@ Action: Recommend at least 2-4 best-fit courses from the available catalog that 
 
 Guardrails/Guidelines:
 - Select only from the provided course catalog
-- Recommend minimum 2 courses that address different skill areas, ideally 4-5
+- CRITICAL: Do NOT recommend courses that the employee has already completed or is currently enrolled in
+- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
+- Recommend minimum 2 courses that address different skill areas, ideally 4-5, from the remaining available courses
 - Focus on courses that bridge the most critical skill gaps
 - The "reason" field must be exactly 2-4 words explaining the selection
 - Ensure recommendations are achievable within reasonable timeframe
@@ -245,6 +257,9 @@ Employee Data:
 
 Available Courses:
 {json.dumps(serialize(courses), indent=2)}
+
+Employee's Completed Courses: {completed_course_ids}
+Employee's Ongoing Courses: {ongoing_course_ids}
 """
 
         result = llm.invoke([HumanMessage(content=prompt)])
@@ -267,6 +282,11 @@ def validate_output(state: AgentState) -> AgentState:
         cursor.execute("SELECT * FROM m_courses")
         courses = cursor.fetchall()
 
+        # Get completed and ongoing course IDs for validation
+        completed_course_ids = [course['course_id'] for course in emp.get('courses', [])]
+        ongoing_course_ids = [course['course_id'] for course in emp.get('ongoing_courses', [])]
+        excluded_course_ids = completed_course_ids + ongoing_course_ids
+
         prompt = f"""
 Role: You are a quality assurance validator for learning and development recommendations.
 
@@ -274,17 +294,20 @@ Action: Validate the {goal} output to ensure it meets all requirements, is appro
 
 Guardrails/Guidelines:
 - All recommended courses must exist in the provided course catalog
+- CRITICAL: None of the recommended courses should be in the employee's completed or ongoing courses
+- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
 - JSON format must be valid and complete
 - Reasoning must be 2-4 words and meaningful
 - Course progression must be logical and realistic
 - Validate against employee's current role and career level
 - For roadmap: check if skills_after_completion is realistic
+- Set valid to false if any recommended course is already completed or ongoing
 - Set valid to false only if there are critical issues
 
 Output format: Return JSON:
 {{
   "valid": true or false,
-  "reason": "Detailed explanation of validation result"
+  "reason": "Detailed explanation of validation result, specifically mention if any recommended courses are already completed or ongoing"
 }}
 
 Available Courses:
@@ -295,6 +318,10 @@ Employee Analysis:
 
 Employee Data:
 {json.dumps(emp, indent=2)}
+
+Employee's Completed Courses: {completed_course_ids}
+Employee's Ongoing Courses: {ongoing_course_ids}
+Excluded Course IDs: {excluded_course_ids}
 
 Output to Validate:
 {output}

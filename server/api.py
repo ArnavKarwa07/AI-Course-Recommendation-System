@@ -127,24 +127,13 @@ async def chat(request: Request):
         if not emp_id or not message:
             return JSONResponse(content={"error": "emp_id and message are required"}, status_code=400)
         
-        # Return streaming response
-        return StreamingResponse(
-            stream_chat_response(emp_id, message),
-            media_type="text/plain"
-        )
+        # Get complete response (no streaming)
+        response = process_chat_message(emp_id, message)
+        
+        return JSONResponse(content={"response": response}, status_code=200)
         
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-def stream_chat_response(emp_id: int, message: str):
-    """Generator function for streaming chat responses"""
-    try:
-        for chunk in process_chat_message(emp_id, message):
-            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
-    except Exception as e:
-        yield f"data: {json.dumps({'error': str(e)})}\n\n"
-    finally:
-        yield f"data: {json.dumps({'done': True})}\n\n"
 
 @router.get("/ongoing_courses/{emp_id}")
 def get_ongoing_courses(emp_id: int, db: Session = Depends(get_db)):

@@ -173,60 +173,7 @@ export function useChatAPI() {
     }
   };
 
-  const sendMessageStream = async (message, onChunk) => {
-    try {
-      const response = await fetch(`${http.defaults.baseURL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...http.defaults.headers.common,
-        },
-        body: JSON.stringify({
-          emp_id: empId,
-          message,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.chunk) {
-                onChunk(data.chunk);
-              } else if (data.done) {
-                return;
-              } else if (data.error) {
-                throw new Error(data.error);
-              }
-            } catch (e) {
-              console.error("Error parsing chunk:", e);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      onChunk(
-        "I'm having trouble connecting right now. Please try again later."
-      );
-    }
-  };
-
-  return { sendMessage, sendMessageStream };
+  return { sendMessage };
 }
 
 export function useOngoingCoursesAPI() {

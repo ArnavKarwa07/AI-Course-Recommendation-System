@@ -92,15 +92,15 @@ export default function Profile() {
       >
         {/* Left Column */}
         <div>
-          <Skills employeeData={employeeData} />
-          <Projects projectsData={projectsData} />
           <PersonalInformation employeeData={employeeData} />
           <LearningProfile employeeData={employeeData} />
+          <Skills employeeData={employeeData} />
+          <CompletedCourses completedCourses={completedCourses} />
         </div>
         {/* Right Column */}
         <div>
-          <CompletedCourses completedCourses={completedCourses} />
           <KPIs kpiData={kpiData} />
+          <Projects projectsData={projectsData} />
         </div>
       </div>
     </div>

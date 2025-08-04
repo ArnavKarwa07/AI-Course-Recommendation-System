@@ -1,11 +1,10 @@
-/* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react";
 import { useChatAPI } from "../api/apis";
 import SendIcon from "@mui/icons-material/Send";
 import "./ChatBot.css";
 
 export default function ChatBot() {
-  const { sendMessage: sendChatMessage, sendMessageStream } = useChatAPI();
+  const { sendMessage: sendChatMessage } = useChatAPI();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -13,6 +12,7 @@ export default function ChatBot() {
       text: "Hi! I'm SkillSense AI, your personal learning assistant. How can I help you today?",
       isBot: true,
       timestamp: new Date(),
+      isHtml: false,
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
@@ -36,6 +36,7 @@ export default function ChatBot() {
       text: inputMessage,
       isBot: false,
       timestamp: new Date(),
+      isHtml: false,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -43,37 +44,31 @@ export default function ChatBot() {
     setInputMessage("");
     setIsTyping(true);
 
-    // Add placeholder bot message for streaming
-    const botMessageId = Date.now() + 1;
-    const botMessage = {
-      id: botMessageId,
-      text: "",
-      isBot: true,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, botMessage]);
-
     try {
-      await sendMessageStream(currentMessage, (chunk) => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === botMessageId ? { ...msg, text: msg.text + chunk } : msg
-          )
-        );
-        setIsTyping(false);
-      });
+      const response = await sendChatMessage(currentMessage);
+
+      // Check if response contains HTML
+      const isHtmlResponse = response.includes("<") && response.includes(">");
+
+      const botMessage = {
+        id: Date.now() + 1,
+        text: response,
+        isBot: true,
+        timestamp: new Date(),
+        isHtml: isHtmlResponse,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === botMessageId
-            ? {
-                ...msg,
-                text: "I'm experiencing technical difficulties. Please try again later.",
-              }
-            : msg
-        )
-      );
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: "I'm experiencing technical difficulties. Please try again later.",
+        isBot: true,
+        timestamp: new Date(),
+        isHtml: false,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
@@ -152,7 +147,15 @@ export default function ChatBot() {
                 }}
               >
                 <div className="message-content">
-                  {message.text && <p>{message.text}</p>}
+                  {message.text &&
+                    (message.isHtml ? (
+                      <div
+                        className="html-content"
+                        dangerouslySetInnerHTML={{ __html: message.text }}
+                      />
+                    ) : (
+                      <p>{message.text}</p>
+                    ))}
                   {!isTyping && message.text && (
                     <span className="message-time">
                       {formatTime(message.timestamp)}

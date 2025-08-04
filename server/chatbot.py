@@ -94,7 +94,8 @@ def build_system_prompt(state: ChatState) -> str:
     
     if not employee_data:
         return """You are SkillSense AI, a friendly learning assistant. 
-Please inform the user that they need to log in to access personalized recommendations."""
+Please inform the user that they need to log in to access personalized recommendations.
+CRITICAL: Always format your response in HTML."""
     
     employee = employee_data.get('employee', {})
     completed_courses = employee_data.get('completed_courses', [])
@@ -182,18 +183,27 @@ Recommendation: {output_preview}"""
     return f"""
 You are SkillSense AI, a friendly and helpful learning assistant for {employee_name}. 
 
+CRITICAL FORMATTING REQUIREMENT: Always format your response as HTML. Use proper HTML tags for structure and styling.
+
 Your responses should be:
 - Conversational and natural, like talking to a colleague
-- Simple and easy to understand
-- Free of technical jargon, symbols, and excessive formatting
-- Structured as plain text without markdown symbols like ###, **, -, or bullet points
+- Well-formatted using HTML tags (h3, p, ul, li, strong, em, etc.)
+- Use HTML lists for course recommendations and bullet points
+- Use HTML tables for data presentation when appropriate
+- Use HTML headings for section organization
+- Include inline CSS styling for better visual appeal
 - Actionable and specific to their needs
 
-IMPORTANT FORMATTING RULES:
-- Do NOT use hashtags, asterisks, dashes, or other symbols for formatting
-- Write in paragraph form or use simple numbered lists without symbols
-- Avoid terms like "Action Plan", "Duration", "Course ID", "Focus"
-- Use natural language instead of structured technical formats
+HTML FORMATTING GUIDELINES:
+- do not include ``` in the start or the end of your response
+- Use <h3> for main section headings
+- Use <p> for paragraphs
+- Use <ul> and <li> for bullet points and lists
+- Use <strong> for emphasis
+- Use <em> for highlighting
+- Use <table> for structured data
+- Add inline styles for colors and spacing
+- Use <div> with styles for better layout
 
 EMPLOYEE CONTEXT:
 Name: {employee_name}
@@ -207,7 +217,13 @@ LEARNING PROGRESS:
 INSIGHTS:
 {rec_summary}
 
-When suggesting courses or next steps, present them in bullet points, mentioning course names and explaining why they would be helpful based on the employee's goals and current progress.
+When suggesting courses or next steps, present them in HTML format with proper styling, explaining why they would be helpful based on the employee's goals and current progress.
+
+Example HTML format for course recommendations:
+<h3 style="color: #667eea; margin-bottom: 10px;">📚 Recommended Courses</h3>
+<ul style="margin: 10px 0;">
+  <li style="margin: 5px 0;"><strong>Course Name</strong> - Brief explanation of why this course is helpful</li>
+</ul>
 """
 
 def chat_node(state: ChatState):
@@ -219,8 +235,14 @@ def chat_node(state: ChatState):
         # Build system prompt
         system_prompt = build_system_prompt(state)
         
-        # Create full prompt
-        full_prompt = f"{system_prompt}\n\nUSER QUESTION: \"{human_message.content}\""
+        # Create full prompt with HTML formatting requirement
+        full_prompt = f"""{system_prompt}
+
+IMPORTANT: Your response MUST be formatted as valid HTML. Use HTML tags for all formatting including headings, lists, emphasis, and structure.
+
+USER QUESTION: "{human_message.content}"
+
+Remember to format your entire response as HTML with proper tags and styling."""
         
         # Stream the response and accumulate for state
         full_response = ""
@@ -234,7 +256,7 @@ def chat_node(state: ChatState):
         
     except Exception as e:
         print(f"Chat error: {e}")
-        yield "I'm experiencing technical difficulties. Please try again."
+        yield "<p style='color: #e74c3c;'>I'm experiencing technical difficulties. Please try again.</p>"
 
 # Create the graph
 def create_chat_graph():
@@ -258,7 +280,7 @@ chat_graph = create_chat_graph()
 MAX_CHAT_HISTORY = 10
 
 def process_chat_message(emp_id: int, message: str):
-    """Main chat processing function using LangGraph with streaming"""
+    """Main chat processing function without streaming"""
     try:
         # Get chat history for context
         history = chat_memory.get(emp_id, [])
@@ -284,11 +306,15 @@ def process_chat_message(emp_id: int, message: str):
         # Load context first
         state = load_employee_context(initial_state)
         
-        # Stream the response
+        # Get the complete response (no streaming)
         full_response = ""
         for chunk in chat_node(state):
             full_response += chunk
-            yield chunk
+        
+        # Ensure the response is valid HTML
+        if not full_response.strip().startswith('<'):
+            # Wrap plain text in HTML paragraph tags
+            full_response = f"<p>{full_response}</p>"
         
         # Store in memory (keep last MAX_CHAT_HISTORY exchanges)
         if emp_id not in chat_memory:
@@ -303,11 +329,13 @@ def process_chat_message(emp_id: int, message: str):
         if len(chat_memory[emp_id]) > MAX_CHAT_HISTORY:
             chat_memory[emp_id] = chat_memory[emp_id][-MAX_CHAT_HISTORY:]
         
+        return full_response
+        
     except Exception as e:
         import traceback
         print(f"Chat error: {e}")
         traceback.print_exc()
-        yield "Sorry, something went wrong while processing your request. Please try again later or contact support if the issue persists."
+        return "<p style='color: #e74c3c;'><strong>Sorry, something went wrong while processing your request.</strong> Please try again later or contact support if the issue persists.</p>"
 
 def clear_chat_history(emp_id: int):
     """Clear chat history"""
@@ -317,4 +345,4 @@ def clear_chat_history(emp_id: int):
 def reset_conversation(emp_id: int) -> str:
     """Reset conversation"""
     clear_chat_history(emp_id)
-    return "Conversation cleared. How can I help you today?"
+    return "<p style='color: #27ae60;'><strong>Conversation cleared.</strong> How can I help you today?</p>"
