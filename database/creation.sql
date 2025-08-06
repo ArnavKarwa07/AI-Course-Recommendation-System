@@ -1,6 +1,5 @@
 -- Create the database
 -- DROP DATABASE recom_dummy;
-
 CREATE DATABASE IF NOT EXISTS recom_dummy;
 USE recom_dummy;
 
@@ -35,6 +34,7 @@ CREATE TABLE m_emp (
 
 -- Create employee KPI tracking table
 CREATE TABLE t_emp_kpi (
+    kpi_id INT PRIMARY KEY AUTO_INCREMENT,
     emp_id INT,
     month DATE,
     kpi_metric VARCHAR(100),
@@ -139,4 +139,4 @@ ALTER TABLE t_recommendation
 ADD CONSTRAINT unique_emp_goal UNIQUE (emp_id, goal);
 
 -- Show all tables
-SHOW TABLES;
+-- SHOW TABLES;
