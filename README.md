@@ -14,7 +14,7 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **Accelerate Career Development**: Structured roadmaps guide employees through logical skill progression
 - **Maximize Training ROI**: Targeted recommendations ensure training investments deliver measurable results
 - **Reduce Skills Shortage**: Proactive identification and addressing of skill gaps before they impact productivity
-- **Data-Driven Insights**: Comprehensive analytics help L&D teams make informed decisions
+- **Project Team Optimization**: Advanced team skill assessment for optimal project assignments
 
 ### For Employees
 
@@ -32,6 +32,13 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **Behavioral Analysis**: Identifies individual learning patterns and preferences for optimal course matching
 - **Skill Gap Detection**: Automatically analyzes current skills against role requirements and career goals
 - **Quality Assurance**: Multi-agent validation ensures recommendations are relevant and achievable
+
+### Project Management & Team Analysis
+
+- **Project Readiness Assessment**: Comprehensive skill coverage analysis for project teams
+- **Team Skill Matrix**: Visual representation of individual and collective team capabilities
+- **Manager Dashboard**: Project managers can view and analyze all assigned projects
+- **Skill Gap Identification**: Highlights missing or insufficient skills within project teams
 
 ### Comprehensive Analytics
 
@@ -69,6 +76,7 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **MySQL Database**: Robust relational database for data persistence and integrity
 - **LangGraph**: Advanced multi-agent system for AI recommendation pipeline
 - **OpenAI Integration**: Cutting-edge language models for intelligent analysis
+- **SQLAlchemy**: Modern ORM for database operations and model management
 
 ### AI Recommendation Engine
 
@@ -84,6 +92,38 @@ The system employs a sophisticated multi-agent architecture:
 
 The above diagram illustrates the complete technical architecture and data flow of SkillSense AI, showing how user interactions trigger the AI recommendation pipeline and database operations.
 
+### Project Structure
+
+```
+SkillSense AI/
+├── client/                    # React frontend application
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── Dashboard/    # Dashboard components and timeline
+│   │   │   ├── Courses/      # Course-related components
+│   │   │   ├── Layout/       # Layout components (Header, Footer, ChatBot)
+│   │   │   ├── YourTeam/     # Project readiness and team management
+│   │   │   └── Shared/       # Shared utility components
+│   │   ├── context/          # Context providers for state management
+│   │   ├── api/              # API integration functions
+│   │   └── ...
+├── server/                   # FastAPI backend application
+│   ├── api.py               # Main FastAPI application and routes
+│   ├── models.py            # SQLAlchemy database models
+│   ├── db.py                # Database connection configuration
+│   ├── recommendation_engine.py  # AI recommendation pipeline
+│   ├── chatbot.py           # AI chatbot functionality
+│   ├── config.py            # Configuration management
+│   ├── .env                 # Environment variables
+│   └── ...
+├── database/                # Database scripts and dummy_data
+├── data_workflow.png        # Data workflow diagram
+├── technical_workflow.png   # Technical architecture diagram
+├── recommended_courses_ui_example.png # UI screenshot
+├── roadmap_ui_example.png   # Roadmap UI screenshot
+└── README.md
+```
+
 ### Database Structure
 
 The system uses a comprehensive MySQL database with the following key tables:
@@ -91,12 +131,14 @@ The system uses a comprehensive MySQL database with the following key tables:
 - **`m_roles`**: Master data for organizational roles and skill requirements
 - **`m_emp`**: Employee profiles with skills, preferences, and career goals
 - **`m_courses`**: Course catalog with metadata and skill mappings
+- **`m_projects`**: Project definitions with required skills and client information
 - **`t_emp_kpi`**: Employee performance tracking and KPI metrics
 - **`t_course_completion`**: Learning history and completion records
-- **`t_emp_projects`**: Project experience and skill utilization
+- **`t_ongoing_courses`**: Currently enrolled courses and progress tracking
+- **`t_emp_projects`**: Employee-project assignments and roles
 - **`t_recommendation`**: AI-generated recommendations and analysis
 
-The [database.sql](server/database.sql) file includes complete schema definitions and sample data for testing.
+Database files are located in the [database/](database/) directory with creation scripts and sample data.
 
 ### Database Schema
 
@@ -106,14 +148,12 @@ The [database.sql](server/database.sql) file includes complete schema definition
 
 ```sql
 CREATE TABLE m_roles (
-    role_id INT PRIMARY KEY AUTO_INCREMENT,
-    role_name VARCHAR(255) NOT NULL,
-    department VARCHAR(255),
-    required_skills TEXT,
-    skill_level_required JSON,
-    responsibilities TEXT,
-    career_progression_path TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    role_id INT PRIMARY KEY,
+    role VARCHAR(100),
+    dept VARCHAR(100),
+    job_level VARCHAR(50),
+    skills_required JSON,
+    avg_promotion_time INT
 );
 ```
 
@@ -122,17 +162,19 @@ CREATE TABLE m_roles (
 ```sql
 CREATE TABLE m_emp (
     emp_id INT PRIMARY KEY,
-    emp_name VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
     role_id INT,
-    department VARCHAR(255),
-    current_skills TEXT,
-    skill_proficiency JSON,
-    career_goals TEXT,
-    learning_preferences JSON,
-    years_of_experience INT,
-    education_background TEXT,
-    certifications TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role VARCHAR(100),
+    dept VARCHAR(100),
+    skills JSON,
+    learning_preferences VARCHAR(100),
+    interests VARCHAR(100),
+    career_goal VARCHAR(100),
+    join_date DATE,
+    last_promotion_date DATE,
+    experience INT,
+    languages VARCHAR(100),
+    manager_ids JSON,
     FOREIGN KEY (role_id) REFERENCES m_roles(role_id)
 );
 ```
@@ -141,19 +183,30 @@ CREATE TABLE m_emp (
 
 ```sql
 CREATE TABLE m_courses (
-    course_id INT PRIMARY KEY AUTO_INCREMENT,
-    course_name VARCHAR(255) NOT NULL,
-    course_description TEXT,
-    category VARCHAR(255),
-    difficulty_level ENUM('Beginner', 'Intermediate', 'Advanced'),
-    duration_hours INT,
-    skills_covered TEXT,
-    prerequisites TEXT,
-    learning_outcomes TEXT,
-    rating DECIMAL(3,2),
-    provider VARCHAR(255),
-    course_url VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    course_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    category VARCHAR(100),
+    `desc` TEXT,
+    skills JSON,
+    format VARCHAR(50),
+    level VARCHAR(50),
+    prerequisite_skills JSON,
+    duration FLOAT
+);
+```
+
+**`m_projects`** - Project Master Data
+
+```sql
+CREATE TABLE m_projects (
+    project_id INT PRIMARY KEY,
+    project_name VARCHAR(100),
+    client VARCHAR(100),
+    duration FLOAT,
+    start_date DATE,
+    skills JSON,
+    status VARCHAR(50),
+    manager_ids JSON
 );
 ```
 
@@ -165,17 +218,10 @@ CREATE TABLE m_courses (
 CREATE TABLE t_emp_kpi (
     kpi_id INT PRIMARY KEY AUTO_INCREMENT,
     emp_id INT,
-    evaluation_period VARCHAR(50),
-    performance_score DECIMAL(5,2),
-    goal_achievement_rate DECIMAL(5,2),
-    skill_improvement_score DECIMAL(5,2),
-    leadership_score DECIMAL(5,2),
-    collaboration_score DECIMAL(5,2),
-    innovation_score DECIMAL(5,2),
-    comments TEXT,
-    evaluator_id INT,
-    evaluation_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    month DATE,
+    kpi_metric VARCHAR(100),
+    kpi_score DECIMAL(5,2),
+    review TEXT,
     FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
 );
 ```
@@ -184,40 +230,43 @@ CREATE TABLE t_emp_kpi (
 
 ```sql
 CREATE TABLE t_course_completion (
-    completion_id INT PRIMARY KEY AUTO_INCREMENT,
     emp_id INT,
     course_id INT,
-    enrollment_date DATE,
-    completion_date DATE,
-    completion_status ENUM('Enrolled', 'In Progress', 'Completed', 'Dropped'),
+    start_date DATE,
+    end_date DATE GENERATED ALWAYS AS (DATE_ADD(start_date, INTERVAL expected_duration MONTH)) STORED,
+    duration FLOAT,
+    expected_duration FLOAT,
     score DECIMAL(5,2),
-    time_spent_hours INT,
-    feedback TEXT,
-    certificate_earned BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
     FOREIGN KEY (course_id) REFERENCES m_courses(course_id)
 );
 ```
 
-**`t_emp_projects`** - Project Experience
+**`t_ongoing_courses`** - Current Enrollments
+
+```sql
+CREATE TABLE t_ongoing_courses (
+    emp_id INT,
+    course_id INT,
+    course_name VARCHAR(100),
+    start_date DATE,
+    current_progress INT CHECK (current_progress >= 0 AND current_progress < 100),
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
+    FOREIGN KEY (course_id) REFERENCES m_courses(course_id)
+);
+```
+
+**`t_emp_projects`** - Project Assignments
 
 ```sql
 CREATE TABLE t_emp_projects (
-    project_id INT PRIMARY KEY AUTO_INCREMENT,
+    tep_id INT PRIMARY KEY AUTO_INCREMENT,
     emp_id INT,
-    project_name VARCHAR(255),
-    project_description TEXT,
-    role_in_project VARCHAR(255),
-    technologies_used TEXT,
-    skills_utilized TEXT,
-    skills_gained TEXT,
-    project_duration_months INT,
-    project_start_date DATE,
-    project_end_date DATE,
-    project_success_rating DECIMAL(3,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+    project_id INT,
+    role VARCHAR(100),
+    skills JSON,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
+    FOREIGN KEY (project_id) REFERENCES m_projects(project_id)
 );
 ```
 
@@ -227,21 +276,16 @@ CREATE TABLE t_emp_projects (
 CREATE TABLE t_recommendation (
     recommendation_id INT PRIMARY KEY AUTO_INCREMENT,
     emp_id INT,
-    recommended_courses JSON,
-    skill_gap_analysis TEXT,
-    learning_roadmap JSON,
-    recommendation_reasoning TEXT,
-    priority_level ENUM('High', 'Medium', 'Low'),
-    estimated_completion_time VARCHAR(100),
-    expected_outcomes TEXT,
-    recommendation_score DECIMAL(5,2),
-    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('Active', 'Completed', 'Outdated') DEFAULT 'Active',
-    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id)
+    goal VARCHAR(255),
+    output JSON,
+    analysis JSON,
+    valid BOOLEAN,
+    validation_summary JSON,
+    last_updated_time DATETIME,
+    FOREIGN KEY (emp_id) REFERENCES m_emp(emp_id),
+    UNIQUE KEY unique_emp_goal (emp_id, goal)
 );
 ```
-
-<!-- ## Getting Started -->
 
 ### Prerequisites
 
@@ -250,9 +294,9 @@ CREATE TABLE t_recommendation (
 - **MySQL** (v8.0 or higher)
 - **OpenAI API Key**
 
-### Environment Setup
+### Environment Configuration
 
-**Configure `.env` file:**
+**Server `.env` file:**
 
 ```env
 # Database Configuration
@@ -270,17 +314,24 @@ GPT_API_KEY=your_openai_api_key_here
 
 ### Endpoints
 
-| Endpoint                  | Method | Description                           | Parameters          |
-| ------------------------- | ------ | ------------------------------------- | ------------------- |
-| `/recommend`              | POST   | Generate personalized recommendations | `emp_id`, `goal`    |
-| `/refresh_recommendation` | POST   | Refresh existing recommendations      | `emp_id`, `goal`    |
-| `/employee/{emp_id}`      | GET    | Retrieve employee profile             | `emp_id` (path)     |
-| `/courses`                | GET    | Get complete course catalog           | None                |
-| `/roles`                  | GET    | Get all organizational roles          | None                |
-| `/completion/{emp_id}`    | GET    | Get employee learning history         | `emp_id` (path)     |
-| `/kpi/{emp_id}`           | GET    | Get employee performance metrics      | `emp_id` (path)     |
-| `/projects/{emp_id}`      | GET    | Get employee project experience       | `emp_id` (path)     |
-| `/chat`                   | POST   | AI chatbot interaction                | `emp_id`, `message` |
+| Endpoint                             | Method | Description                                   | Parameters                   |
+| ------------------------------------ | ------ | --------------------------------------------- | ---------------------------- |
+| `/recommend`                         | POST   | Generate personalized recommendations         | `emp_id`, `goal`             |
+| `/refresh_recommendation`            | POST   | Refresh existing recommendations              | `emp_id`, `goal`             |
+| `/employee/{emp_id}`                 | GET    | Retrieve employee profile                     | `emp_id` (path)              |
+| `/courses`                           | GET    | Get complete course catalog                   | None                         |
+| `/roles`                             | GET    | Get all organizational roles                  | None                         |
+| `/completion/{emp_id}`               | GET    | Get employee learning history                 | `emp_id` (path)              |
+| `/kpi/{emp_id}`                      | GET    | Get employee performance metrics              | `emp_id` (path)              |
+| `/projects/{emp_id}`                 | GET    | Get employee project experience               | `emp_id` (path)              |
+| `/chat`                              | POST   | AI chatbot interaction                        | `emp_id`, `message`          |
+| `/ongoing_courses/{emp_id}`          | GET    | Get employee's ongoing courses with progress  | `emp_id` (path)              |
+| `/team/{manager_id}`                 | GET    | Get team members for a manager                | `manager_id` (path)          |
+| `/team-analytics/{manager_id}`       | GET    | Get team performance analytics                | `manager_id` (path)          |
+| `/bulk-employee-data`                | GET    | Get comprehensive data for multiple employees | `emp_ids` (query, comma-sep) |
+| `/projects/manager/{emp_id}`         | GET    | Get projects managed by an employee           | `emp_id` (path)              |
+| `/projects/{project_id}/assignments` | GET    | Get team members assigned to a project        | `project_id` (path)          |
+| `/projects/{project_id}/skills`      | GET    | Get skill requirements                        |
 
 ### Authentication
 
@@ -298,12 +349,13 @@ All endpoints require valid employee authentication via the login system.
 
 ### Data Collection & Analysis
 
-| Function              | File                                                        | Description                                       | Usage                                       |
-| --------------------- | ----------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
-| `collect_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | Gathers employee profile, KPIs, projects, courses | First step in recommendation pipeline       |
-| `analyze_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | AI analysis of employee behavior and skill gaps   | Identifies learning patterns and needs      |
-| `generate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Creates personalized course recommendations       | Uses LLM to match courses to employee needs |
-| `validate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Quality assurance for AI recommendations          | Ensures output validity and relevance       |
+| Function              | File                                                        | Description                                           | Usage                                       |
+| --------------------- | ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------- |
+| `collect_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | Gathers employee profile, KPIs, projects, courses     | First step in recommendation pipeline       |
+| `analyze_user_data()` | [recommendation_engine.py](server/recommendation_engine.py) | AI analysis of employee behavior and skill gaps       | Identifies learning patterns and needs      |
+| `generate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Creates personalized course recommendations           | Uses LLM to match courses to employee needs |
+| `validate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Quality assurance for AI recommendations              | Ensures output validity and relevance       |
+| `serialize()`         | [recommendation_engine.py](server/recommendation_engine.py) | Converts database objects to JSON-serializable format | Data transformation for API responses       |
 
 ### Chatbot & AI Processing
 
@@ -316,26 +368,9 @@ All endpoints require valid employee authentication via the login system.
 
 ### Utility Functions
 
-| Function                 | File                                                        | Description                                           | Usage                                 |
-| ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------- |
-| `extract_json_block()`   | [extract_json.py](server/extract_json.py)                   | Extracts JSON from LLM text responses                 | Parses AI-generated structured data   |
-| `stream_chat_response()` | [api.py](server/api.py)                                     | Generator for streaming chat responses                | Real-time response delivery           |
-| `serialize()`            | [recommendation_engine.py](server/recommendation_engine.py) | Converts database objects to JSON-serializable format | Data transformation for API responses |
-
-## 🔧 Performance & Scalability
-
-### Optimization Features
-
-- **Fast Loading**: Vite-powered frontend with optimized build process
-- **Efficient APIs**: FastAPI backend with async processing
-- **Smart Caching**: Strategic caching for improved response times
-- **Database Optimization**: Indexed queries and optimized data retrieval
-
-### Scalability
-
-- **Microservices Ready**: Modular architecture supports horizontal scaling
-- **Cloud Compatible**: Deploy on AWS, Azure, or Google Cloud
-- **Load Balancing**: Support for high-availability configurations
+| Function               | File                                      | Description                           | Usage                               |
+| ---------------------- | ----------------------------------------- | ------------------------------------- | ----------------------------------- |
+| `extract_json_block()` | [extract_json.py](server/extract_json.py) | Extracts JSON from LLM text responses | Parses AI-generated structured data |
 
 ## 🔍 Troubleshooting
 
@@ -361,106 +396,91 @@ All endpoints require valid employee authentication via the login system.
 
 ---
 
-## Sample Case 
+## Sample Case
 
 ### Employee Profile: ID 101 (Arjun Verma)
 
 #### 1. Employee Data Collection
 
 **Employee Master Data (`m_emp`)**
-| emp_id | name | role_id | role | dept | skills (skill : proficiency) | learning_preferences | interests | career_goal | join_date | last_promotion_date | experience (in months) | languages |
-|--------|------|---------|------|------|------------------------------|---------------------|-----------|-------------|-----------|-------------------|----------------------|-----------|
-| 101 | Arjun Verma | 1 | Software Engineer | Engineering | {"Git": 4, "Python": 4} | Online | AI, Web Dev | Senior Dev | 2021-07-10 | 2023-07-10 | 36 | English, Hindi |
+| emp_id | name | role_id | role | dept | skills | learning_preferences | interests | career_goal | join_date | last_promotion_date | experience | languages | manager_ids |
+|--------|-------------|---------|-------------------|-------------|-----------------------------------------------------------------------|---------------------|--------------------------|-------------|-------------|---------------------|------------------------|----------------|-------------|
+| 101 | Arjun Verma | 1 | Software Engineer | Engineering | {"Git": 4, "Django": 2, "Python": 3, "REST APIs": 3, "PostgreSQL": 3} | Online | AI, Web Dev, Blockchain | Senior Dev | 2021-07-10 | 2023-07-10 | 48 | English, Hindi | [113, 119] |
 
 **Role Requirements (`m_roles`)**
-| role_id | role | dept | job_level | skills_required | avg_promotion_time (months) |
+| role_id | role | dept | job_level | skills_required | avg_promotion_time |
 |---------|------|------|-----------|-----------------|---------------------------|
 | 1 | Software Engineer | Engineering | Junior | {"Git": 3, "Python": 3} | 24 |
+| 2 | Senior Software Engineer | Engineering | Mid | {"Git": 4, "Python": 4, "System Design": 3, "Leadership": 2} | 36 |
 
 #### 2. Performance Analytics
 
 **KPI Metrics (`t_emp_kpi`)**
-| emp_id | month | kpi_metric | kpi_score | review |
-|--------|-------|------------|-----------|---------|
-| 101 | 2024-01-01 | Feedback | 4.5 | Peers praised timely delivery |
-| 101 | 2024-02-01 | Code Quality | 4.2 | Clean modular code |
-| 101 | 2024-03-01 | Bug Resolution | 4.6 | Fixed critical issues fast |
-| 101 | 2024-04-01 | Team Collaboration | 4.0 | Great sync with frontend |
-| 101 | 2024-05-01 | Documentation | 3.9 | Needs slight improvement |
+| kpi_id | emp_id | month | kpi_metric | kpi_score | review |
+|--------|--------|-------|------------|-----------|---------|
+| 1 | 101 | 2024-01-01 | Feedback | 4.5 | Peers praised timely delivery |
+| 2 | 101 | 2024-02-01 | Code Quality | 4.2 | Clean modular code |
+| 3 | 101 | 2024-03-01 | Bug Resolution | 4.6 | Fixed critical issues fast |
+| 4 | 101 | 2024-04-01 | Team Collaboration | 4.0 | Great sync with frontend |
+| 5 | 101 | 2024-05-01 | Documentation | 3.9 | Needs slight improvement |
 
 #### 3. Learning History
 
 **Course Completion (`t_course_completion`)**
-| emp_id | course_id | start_date | end_date | duration (months) | expected_duration (months) | score |
-|--------|-----------|------------|----------|-------------------|---------------------------|-------|
-| 101 | 201 | 2024-01-01 | 2024-02-01 | 1.8 | 1 | 4.6 |
+| emp_id | course_id | start_date | end_date | duration | expected_duration | score |
+|--------|-----------|------------|------------|----------|-------------------|-------|
+| 101 | 201 | 2024-01-01 | 2024-03-01 | 2.3 | 2.5 | 4.60 |
+| 101 | 222 | 2024-09-01 | 2025-01-01 | 3.7 | 4 | 4.30 |
+
+**Ongoing Courses (`t_ongoing_courses`)**
+| emp_id | course_id | course_name | start_date | current_progress |
+|--------|-----------|-------------|------------|------------------|
+| 101 | 202 | Advanced Java | 2025-06-01 | 75 |
 
 #### 4. Project Experience
 
-**Project History (`t_emp_projects`)**
-| project_id | project_name | emp_id | project_role | duration (months) | date | tech_stack | skills_used |
-|------------|--------------|--------|--------------|-------------------|------|------------|-------------|
-| 1001 | Inventory Automation Tool | 101 | Backend Developer | 5 | 2023-07-15 | Python, Flask | {"SQL": 3, "Python": 4} |
-| 1002 | AI Chatbot Integration | 101 | Lead Developer | 4 | 2026-01-20 | Python, Rasa | {"NLP": 3, "Python": 4} |
+**Projects Master (`m_projects`)**
+| project_id | project_name | client | duration | start_date | skills | status | manager_ids |
+|------------|----------------------------|--------------------|----------|-------------|-------------------------------------------------------------|-------------|---------------|
+| 1001 | Inventory Automation Tool | TechCorp Inc | 6 | 2023-07-15 | {"SQL": 3, "Flask": 3, "Python": 4} | Completed | [113, 105] |
+| 1011 | AI Chatbot Integration | E-Commerce Ltd | 4 | 2025-06-20 | {"NLP": 3, "Rasa": 3, "Python": 4} | In Progress | [113, 120] |
+| 1021 | Cloud Native Migration | CloudFirst Ltd | 10 | 2025-08-15 | {"Java": 4, "Cloud": 4, "Kubernetes": 4} | Planned | [113, 127] |
 
-#### 5. AI Analysis Results
+**Employee Projects (`t_emp_projects`)**
+| tep_id | emp_id | project_id | role | skills |
+|--------|--------|------------|------------------|----------------------------------------------|
+| 1 | 101 | 1001 | Backend Developer| {"SQL": 3, "Flask": 2, "Python": 3} |
+| 2 | 101 | 1011 | Backend Developer| {"APIs": 3, "Python": 3, "Integration": 2} |
+| 3 | 101 | 1021 | Senior Developer | {"Cloud": 2, "Python": 3, "Microservices": 2}|
 
-**Analysis Output:**
-
-```json
-{
-  "skill_gaps": ["SQL", "NLP", "Documentation"],
-  "behavior_traits": [
-    "timely delivery",
-    "problem-solving",
-    "team collaboration",
-    "attention to detail"
-  ],
-  "learning_preferences": ["Online"]
-}
-```
-
-#### 6. Available Courses
+#### 5. Available Courses
 
 **Course Catalog (`m_courses`)**
-| course_id | name | category | desc | skills | format | level | prerequisite_skills | duration (months) |
-|-----------|------|----------|------|--------|--------|-------|-------------------|------------------|
-| 201 | Intro to Python | Programming | Learn Python basics | {"Python": 3} | Online | Beginner | null | 1 |
-| 202 | Advanced Java | Programming | Deep dive into Java | {"Java": 4} | Online | Advanced | {"Java": 3} | 2 |
+| course_id | name | category | desc | skills | format | level | prerequisite_skills | duration |
+|-----------|------|----------|------|--------|--------|-------|-------------------|----------|
+| 201 | Intro to Python | Programming | Learn Python basics for beginners | {"Python": 3} | Online | Beginner | null | 1.0 |
+| 202 | Advanced Java | Programming | Deep dive into Java enterprise development | {"Java": 4, "Spring": 3} | Online | Advanced | {"Java": 3} | 2.0 |
+| 203 | Machine Learning A-Z | Data Science | Complete machine learning course from basics to advanced | {"Machine Learning": 4, "Python": 3, "Statistics": 3} | Online | Intermediate | {"Python": 2} | 3.0 |
+| 204 | System Design Fundamentals | Architecture | Learn scalable system design principles | {"System Design": 3, "Architecture": 3} | Online | Intermediate | {"Programming": 3} | 2.5 |
+| 205 | SQL for Data Analysts | Database | Master SQL for data analysis and reporting | {"SQL": 4, "Data Analysis": 3} | Online | Intermediate | null | 1.5 |
+| 206 | Leadership Skills | Management | Develop leadership and team management skills | {"Leadership": 3, "Communication": 3} | Hybrid | Beginner | null | 1.0 |
+| 207 | Technical Documentation | Communication | Improve technical writing and documentation skills | {"Documentation": 3, "Communication": 3} | Online | Beginner | null | 0.5 |
 
-#### 7. AI Recommendations
+#### 6 AI recommendation and analysis
 
-**Generated Output:**
+**AI Analysis**
 
-```json
-[
-  {
-    "desc": "SQL queries",
-    "order": 1,
-    "c_name": "SQL for Data Analysts",
-    "reason": "Identified skill gap in SQL",
-    "duration": 1.0,
-    "course_id": "205"
-  },
-  {
-    "desc": "Full ML course",
-    "order": 2,
-    "c_name": "Machine Learning A-Z",
-    "reason": "Supports career goal"
-    ...
-  }
-]
+```
+{"skill_gaps": ["SQL", "Testing", "Cloud", "Microservices"], "behavior_traits": ["proactive", "collaborative", "adaptable"], "learning_preferences": ["Online"]}
 ```
 
-**Recommendations stored in (`t_recommendation`)**
-| recommendation_id | emp_id | goal | output | analysis (skill_gap, behaviour_traits, learning_preferences) | valid | validation_summary | last_updated_time |
-|------------------|--------|------|--------|-----------------------------------------------------------|-------|-------------------|------------------|
-| 31 | 101 | roadmap | [{"desc": "SQL queries", "order": 1, "c_name": "SQL for Data Analysts", "reason": "Identified skill gap in SQL", "duration": 1.0, "course_id": "205"}, {"desc": "Full ML course", "order": 2, "c_name": "Machine Learning A-Z", "reason": "Supports career goal..."}] | {"skill_gaps": ["Documentation", "SQL", "NLP"], "behavior_traits": ["timely delivery", "clean code", "team collaboration"], "learning_preferences": ["Online"]} | 0 | {"valid": false, "reason": "Course progression issues"} | 2025-07-22 23:22:50 |
-| 41 | 101 | courses | [{"name": "SQL for Data Analysts", "reason": "Addresses SQL skill gap", "course_id": 205}, {"name": "Machine Learning A-Z", "reason": "NLP skill enhancement", "course_id": 203}, {"name": "Data Analysis with Excel", "reason": "Improves documentation skills..."}] | {"skill_gaps": ["SQL", "NLP", "Documentation"], "behavior_traits": ["timely delivery", "problem-solving", "team collaboration", "attention to detail"], "learning_preferences": ["Online"]} | 1 | {"valid": true, "reason": "All courses are relevant"} | 2025-07-22 23:22:10 |
+**Recommendations (`t_recommendation`)**
+| recommendation_id | emp_id | goal | output | analysis | valid | validation_summary | last_updated_time |
+|-------------------|--------|------|---------|----------|--------|-------------------|-------------------|
+| 34 | 101 | courses | [{"name": "SQL for Data Analysts", "reason": "Strengthens SQL skills", "course_id": 205}, {"name": "Microservices Architecture", "reason": "Enhances microservices expertise", "course_id": 211}, {"name": "AWS Certified DevOps", "reason": "Develops cloud s... | {"skill_gaps": ["SQL", "Testing", "Cloud", "Microservices"], "behavior_traits": ["proactive", "collaborative", "adaptable"], "learning_preferences": ["Online"]} | 0 | {"valid": false, "reason": "SQL for Data Analysts is a new recommendation and does not exist in completed or ongoing courses, but it is still valid since it addresses a skill gap. However, the ongoing course Advanced Java is critical and already included... | 2025-08-06 17:23:16 |
+| 10 | 101 | roadmap | {"roadmap": [{"desc": "SQL queries", "order": 1, "c_name": "SQL for Data Analysts", "reason": "Essential for data querying skills", "duration": 2.0, "course_id": "205"}, {"desc": "Automated testing", "order": 2, "c_name": "Test Automation with Selenium",... | {"skill_gaps": ["SQL", "Testing", "Flask", "Cloud", "Microservices"], "behavior_traits": ["Adaptable", "Collaborative", "Detail-oriented", "Proactive", "Goal-driven"], "learning_preferences": ["Online"]} | 0 | {"valid": false, "reason": "Recommended course 'SQL for Data Analysts' is a critical issue; already completed course 'SQL for Data Analysts'"} | 2025-08-06 17:22:30 |
 
-#### 8. User Interface Output
-
-The system generates personalized learning recommendations displayed through intuitive interfaces:
+## Sample User Interface Output
 
 ![Roadmap UI](roadmap_ui_example.png)
 
