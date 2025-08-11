@@ -18,6 +18,7 @@ export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [recommendationsLoaded, setRecommendationsLoaded] = useState(false);
   const [recommendationError, setRecommendationError] = useState(false);
+  const [isValidRecommendation, setIsValidRecommendation] = useState(true); // Add this state
 
   // Fetch all courses on component mount
   useEffect(() => {
@@ -94,66 +95,61 @@ export default function Courses() {
     try {
       const response = await recommendCourses();
 
-      if (response?.valid) {
-        const recommendations = response.output || [];
+      // Store the validity flag
+      setIsValidRecommendation(response?.valid || false);
 
-        // Check if recommendations is empty
-        if (recommendations.length === 0) {
-          console.warn("No course recommendations returned");
-          setRecommendedCourses([]);
-          setRecommendationError(true);
-          setActiveFilter("recommended");
-          return;
-        }
+      // Modified: Show recommendations even if not valid, but with disclaimer
+      const recommendations = response?.output || [];
 
-        // If allCourses is empty, wait for it to be populated
-        if (allCourses.length === 0) {
-          setRecommendedCourses(recommendations);
-          setRecommendationsLoaded(true);
-          setActiveFilter("recommended");
-          return;
-        }
-
-        // Filter all courses based on course_id from recommendations
-        const filteredCourses = allCourses.filter((course) => {
-          const courseId = course.id || course.course_id || course.c_id;
-          const found = recommendations.some(
-            (rec) => rec.course_id === courseId
-          );
-          return found;
-        });
-
-        // Check if no courses were found after filtering
-        if (filteredCourses.length === 0) {
-          console.warn("No matching courses found for recommendations");
-          setRecommendedCourses([]);
-          setRecommendationError(true);
-          setActiveFilter("recommended");
-          return;
-        }
-
-        // Add recommendation reasons to the filtered courses
-        const coursesWithReasons = filteredCourses.map((course) => {
-          const courseId = course.id || course.course_id || course.c_id;
-          const recommendation = recommendations.find(
-            (rec) => rec.course_id === courseId
-          );
-          return {
-            ...course,
-            reason: recommendation?.reason || "Recommended",
-          };
-        });
-
-        setRecommendedCourses(coursesWithReasons);
-        setRecommendationsLoaded(true);
-        setRecommendationError(false);
-        setActiveFilter("recommended");
-      } else {
-        console.warn("Invalid recommendation response");
+      // Check if recommendations is empty
+      if (recommendations.length === 0) {
+        console.warn("No course recommendations returned");
         setRecommendedCourses([]);
         setRecommendationError(true);
         setActiveFilter("recommended");
+        return;
       }
+
+      // If allCourses is empty, wait for it to be populated
+      if (allCourses.length === 0) {
+        setRecommendedCourses(recommendations);
+        setRecommendationsLoaded(true);
+        setActiveFilter("recommended");
+        return;
+      }
+
+      // Filter all courses based on course_id from recommendations
+      const filteredCourses = allCourses.filter((course) => {
+        const courseId = course.id || course.course_id || course.c_id;
+        const found = recommendations.some((rec) => rec.course_id === courseId);
+        return found;
+      });
+
+      // Check if no courses were found after filtering
+      if (filteredCourses.length === 0) {
+        console.warn("No matching courses found for recommendations");
+        setRecommendedCourses([]);
+        setRecommendationError(true);
+        setActiveFilter("recommended");
+        return;
+      }
+
+      // Add recommendation reasons to the filtered courses
+      const coursesWithReasons = filteredCourses.map((course) => {
+        const courseId = course.id || course.course_id || course.c_id;
+        const recommendation = recommendations.find(
+          (rec) => rec.course_id === courseId
+        );
+        return {
+          ...course,
+          reason: recommendation?.reason || "Recommended",
+        };
+      });
+
+      setRecommendedCourses(coursesWithReasons);
+      setRecommendationsLoaded(true);
+      setRecommendationError(false);
+      setActiveFilter("recommended");
     } catch (err) {
       console.error("Error fetching recommendations:", err);
       setRecommendedCourses([]);
@@ -181,58 +177,51 @@ export default function Courses() {
     try {
       const response = await refreshCourses();
 
-      if (response?.valid) {
-        const recommendations = response.output || [];
+      // Store the validity flag
+      setIsValidRecommendation(response?.valid || false);
 
-        // Check if recommendations is empty
-        if (recommendations.length === 0) {
-          console.warn("No refreshed course recommendations returned");
-          setRecommendedCourses([]);
-          setRecommendationError(true);
-          return;
-        }
+      // Modified: Show recommendations even if not valid, but with disclaimer
+      const recommendations = response?.output || [];
 
-        // Filter all courses based on course_id from recommendations
-        const filteredCourses = allCourses.filter((course) => {
-          const courseId = course.id || course.course_id || course.c_id;
-          const found = recommendations.some(
-            (rec) => rec.course_id === courseId
-          );
-          return found;
-        });
-
-        // Check if no courses were found after filtering
-        if (filteredCourses.length === 0) {
-          console.warn(
-            "No matching courses found for refreshed recommendations"
-          );
-          setRecommendedCourses([]);
-          setRecommendationError(true);
-          return;
-        }
-
-        // Add recommendation reasons to the filtered courses
-        const coursesWithReasons = filteredCourses.map((course) => {
-          const courseId = course.id || course.course_id || course.c_id;
-          const recommendation = recommendations.find(
-            (rec) => rec.course_id === courseId
-          );
-          return {
-            ...course,
-            reason: recommendation?.reason || "Recommended",
-          };
-        });
-
-        setRecommendedCourses(coursesWithReasons);
-        setRecommendationsLoaded(true);
-        setRecommendationError(false);
-        setActiveFilter("recommended");
-      } else {
-        console.warn("Invalid refreshed recommendation response");
+      // Check if recommendations is empty
+      if (recommendations.length === 0) {
+        console.warn("No refreshed course recommendations returned");
         setRecommendedCourses([]);
         setRecommendationError(true);
-        setActiveFilter("recommended");
+        return;
       }
+
+      // Filter all courses based on course_id from recommendations
+      const filteredCourses = allCourses.filter((course) => {
+        const courseId = course.id || course.course_id || course.c_id;
+        const found = recommendations.some((rec) => rec.course_id === courseId);
+        return found;
+      });
+
+      // Check if no courses were found after filtering
+      if (filteredCourses.length === 0) {
+        console.warn("No matching courses found for refreshed recommendations");
+        setRecommendedCourses([]);
+        setRecommendationError(true);
+        return;
+      }
+
+      // Add recommendation reasons to the filtered courses
+      const coursesWithReasons = filteredCourses.map((course) => {
+        const courseId = course.id || course.course_id || course.c_id;
+        const recommendation = recommendations.find(
+          (rec) => rec.course_id === courseId
+        );
+        return {
+          ...course,
+          reason: recommendation?.reason || "Recommended",
+        };
+      });
+
+      setRecommendedCourses(coursesWithReasons);
+      setRecommendationsLoaded(true);
+      setRecommendationError(false);
+      setActiveFilter("recommended");
     } catch (err) {
       console.error("Error refreshing recommendations:", err);
       setRecommendedCourses([]);
@@ -494,17 +483,49 @@ export default function Courses() {
           (recommendationError || recommendedCourses.length === 0) ? (
             renderRecommendationFailsafe()
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                gap: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              {(activeFilter === "all" ? allCourses : recommendedCourses).map(
-                renderCourseCard
-              )}
+            <div>
+              {/* Show disclaimer if recommendations are not valid - similar to roadmap */}
+              {activeFilter === "recommended" &&
+                recommendedCourses.length > 0 &&
+                !isValidRecommendation && (
+                  <div
+                    style={{
+                      background: "#fef3c7",
+                      border: "1px solid #f59e0b",
+                      borderRadius: "8px",
+                      padding: "0.75rem",
+                      marginBottom: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+                    <div>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "0.75rem",
+                          color: "#92400e",
+                        }}
+                      >
+                        These course recommendations may not be fully accurate
+                      </p>
+                    </div>
+                  </div>
+                )}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
+                {(activeFilter === "all" ? allCourses : recommendedCourses).map(
+                  renderCourseCard
+                )}
+              </div>
             </div>
           )}
         </div>
