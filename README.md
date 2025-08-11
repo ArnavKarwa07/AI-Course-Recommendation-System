@@ -77,7 +77,7 @@ An intelligent AI-powered platform that transforms employee learning by providin
 
 - **FastAPI**: High-performance Python web framework for scalable API development
 - **MySQL Database**: Robust relational database for data persistence and integrity
-- **LangGraph**: Advanced multi-agent system for AI recommendation pipeline
+- **LangGraph**: Advanced multi-agent system for AI pipelines
 - **OpenAI Integration**: Cutting-edge language models for intelligent analysis
 - **SQLAlchemy**: Modern ORM for database operations and model management
 
@@ -318,7 +318,7 @@ CREATE TABLE t_recommendation (
 
 ```env
 # Database Configuration
-DB_USER=root
+DB_USER=your_mysql_username
 DB_PASSWORD=your_mysql_password
 DB_HOST=localhost
 DB_PORT=3306
