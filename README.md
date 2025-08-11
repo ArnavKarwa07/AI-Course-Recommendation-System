@@ -32,13 +32,15 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **Behavioral Analysis**: Identifies individual learning patterns and preferences for optimal course matching
 - **Skill Gap Detection**: Automatically analyzes current skills against role requirements and career goals
 - **Quality Assurance**: Multi-agent validation ensures recommendations are relevant and achievable
+- **Interactive AI Chatbot**: Get instant answers about learning paths, career advice, and skill development
 
 ### Project Management & Team Analysis
 
-- **Project Readiness Assessment**: Comprehensive skill coverage analysis for project teams
+- **Project Readiness Assessment**: Comprehensive skill coverage analysis for project teams using AI-powered evaluation
 - **Team Skill Matrix**: Visual representation of individual and collective team capabilities
-- **Manager Dashboard**: Project managers can view and analyze all assigned projects
+- **Manager Dashboard**: Project managers can view and analyze all assigned projects and team members
 - **Skill Gap Identification**: Highlights missing or insufficient skills within project teams
+- **Project Assignment Optimization**: Match employees to projects based on skill requirements
 
 ### Comprehensive Analytics
 
@@ -46,6 +48,7 @@ An intelligent AI-powered platform that transforms employee learning by providin
 - **Career Growth Insights**: Visualize promotion readiness and identify development opportunities
 - **Learning Statistics**: Track completion rates, scores, and learning achievements
 - **Skill Assessment**: Interactive skill mapping with proficiency levels and progress tracking
+- **Team Analytics**: Manager view of team performance and learning progress
 
 ### Strategic Learning Paths
 
@@ -89,8 +92,17 @@ The system employs a sophisticated multi-agent architecture:
 5. **Output Agent**: Formats and delivers final recommendations with clear explanations
 
 ![Technical Workflow](technical_workflow.png)
-
 The above diagram illustrates the complete technical architecture and data flow of SkillSense AI, showing how user interactions trigger the AI recommendation pipeline and database operations.
+
+### AI Project Readiness Engine
+
+The AI-powered project readiness assessment engine evaluates team preparedness for specific projects:
+
+1. **Skill Requirement Analysis**: Analyzes project skill requirements against team capabilities
+2. **Gap Identification**: Identifies missing or insufficient skills within the project team
+3. **Readiness Scoring**: Provides quantitative assessment of project readiness
+4. **Risk Assessment**: Highlights potential risks and areas requiring attention
+5. **Suggestions Generation**: Suggests actions to improve project readiness
 
 ### Project Structure
 
@@ -112,8 +124,14 @@ SkillSense AI/
 │   ├── models.py            # SQLAlchemy database models
 │   ├── db.py                # Database connection configuration
 │   ├── recommendation_engine.py  # AI recommendation pipeline
+│   ├── project_readiness_engine.py  # AI project readiness assessment
+│   ├── project_readiness.py # Project readiness logic
+│   ├── recommendation.py    # Recommendation logic
 │   ├── chatbot.py           # AI chatbot functionality
 │   ├── config.py            # Configuration management
+│   ├── extract_json.py      # JSON parsing utilities
+│   ├── main.py              # Application entry point
+│   ├── requirements.txt     # Python dependencies
 │   ├── .env                 # Environment variables
 │   └── ...
 ├── database/                # Database scripts and dummy_data
@@ -312,26 +330,41 @@ GPT_API_KEY=your_openai_api_key_here
 
 ## API Reference
 
-### Endpoints
+### Core Endpoints
 
-| Endpoint                             | Method | Description                                   | Parameters                   |
-| ------------------------------------ | ------ | --------------------------------------------- | ---------------------------- |
-| `/recommend`                         | POST   | Generate personalized recommendations         | `emp_id`, `goal`             |
-| `/refresh_recommendation`            | POST   | Refresh existing recommendations              | `emp_id`, `goal`             |
-| `/employee/{emp_id}`                 | GET    | Retrieve employee profile                     | `emp_id` (path)              |
-| `/courses`                           | GET    | Get complete course catalog                   | None                         |
-| `/roles`                             | GET    | Get all organizational roles                  | None                         |
-| `/completion/{emp_id}`               | GET    | Get employee learning history                 | `emp_id` (path)              |
-| `/kpi/{emp_id}`                      | GET    | Get employee performance metrics              | `emp_id` (path)              |
-| `/projects/{emp_id}`                 | GET    | Get employee project experience               | `emp_id` (path)              |
-| `/chat`                              | POST   | AI chatbot interaction                        | `emp_id`, `message`          |
-| `/ongoing_courses/{emp_id}`          | GET    | Get employee's ongoing courses with progress  | `emp_id` (path)              |
-| `/team/{manager_id}`                 | GET    | Get team members for a manager                | `manager_id` (path)          |
-| `/team-analytics/{manager_id}`       | GET    | Get team performance analytics                | `manager_id` (path)          |
-| `/bulk-employee-data`                | GET    | Get comprehensive data for multiple employees | `emp_ids` (query, comma-sep) |
-| `/projects/manager/{emp_id}`         | GET    | Get projects managed by an employee           | `emp_id` (path)              |
-| `/projects/{project_id}/assignments` | GET    | Get team members assigned to a project        | `project_id` (path)          |
-| `/projects/{project_id}/skills`      | GET    | Get skill requirements                        |
+| Endpoint                            | Method | Description                                  | Parameters       |
+| ----------------------------------- | ------ | -------------------------------------------- | ---------------- |
+| `/recommend`                        | POST   | Generate personalized recommendations        | `emp_id`, `goal` |
+| `/refresh_recommendation`           | POST   | Refresh existing recommendations             | `emp_id`, `goal` |
+| `/employee/{emp_id}`                | GET    | Retrieve employee profile                    | `emp_id` (path)  |
+| `/courses`                          | GET    | Get complete course catalog                  | None             |
+| `/roles`                            | GET    | Get all organizational roles                 | None             |
+| `/completion/{emp_id}`              | GET    | Get employee learning history                | `emp_id` (path)  |
+| `/kpi/{emp_id}`                     | GET    | Get employee performance metrics             | `emp_id` (path)  |
+| `/projects/{emp_id}`                | GET    | Get employee project experience              | `emp_id` (path)  |
+| `/ongoing_courses/{emp_id}`         | GET    | Get employee's ongoing courses with progress | `emp_id` (path)  |
+| `/skills_after_completion/{emp_id}` | GET    | Get skills after completing roadmap          | `emp_id` (path)  |
+
+### Team Management Endpoints
+
+| Endpoint                       | Method | Description                                   | Parameters                   |
+| ------------------------------ | ------ | --------------------------------------------- | ---------------------------- |
+| `/team/{manager_id}`           | GET    | Get team members for a manager                | `manager_id` (path)          |
+| `/team-analytics/{manager_id}` | GET    | Get team performance analytics                | `manager_id` (path)          |
+| `/bulk-employee-data`          | GET    | Get comprehensive data for multiple employees | `emp_ids` (query, comma-sep) |
+| `/projects/manager/{emp_id}`   | GET    | Get projects managed by an employee           | `emp_id` (path)              |
+
+### Project Readiness Endpoints
+
+| Endpoint                    | Method | Description                       | Parameters             |
+| --------------------------- | ------ | --------------------------------- | ---------------------- |
+| `/assess-project-readiness` | POST   | Assess project readiness using AI | `emp_id`, `project_id` |
+
+### AI & Chat Endpoints
+
+| Endpoint | Method | Description            | Parameters          |
+| -------- | ------ | ---------------------- | ------------------- |
+| `/chat`  | POST   | AI chatbot interaction | `emp_id`, `message` |
 
 ### Authentication
 
@@ -356,6 +389,12 @@ All endpoints require valid employee authentication via the login system.
 | `generate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Creates personalized course recommendations           | Uses LLM to match courses to employee needs |
 | `validate_output()`   | [recommendation_engine.py](server/recommendation_engine.py) | Quality assurance for AI recommendations              | Ensures output validity and relevance       |
 | `serialize()`         | [recommendation_engine.py](server/recommendation_engine.py) | Converts database objects to JSON-serializable format | Data transformation for API responses       |
+
+### Project Readiness Engine
+
+| Function                     | File                                                              | Description                                    | Usage                                              |
+| ---------------------------- | ----------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------- |
+| `assess_project_readiness()` | [project_readiness_engine.py](server/project_readiness_engine.py) | Main function to assess project team readiness | Evaluates team skills against project requirements |
 
 ### Chatbot & AI Processing
 

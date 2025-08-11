@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from recommendation import run_recommendation, refresh_recommendation
+from project_readiness_engine import assess_project_readiness
 from models import *
 from sqlalchemy.orm import Session
 from db import get_db
@@ -163,12 +164,42 @@ def get_ongoing_courses(emp_id: int, db: Session = Depends(get_db)):
         })
     return {"data": formatted_courses}
 
+@router.get("/skills_after_completion/{emp_id}")
+def get_skills_after_completion(emp_id: int, db: Session = Depends(get_db)):
+    """
+    Get the skills an employee will have after completing their recommended roadmap.
+    This is extracted from the 'output' field of the most recent Recommendation for the employee.
+    """
+    # Get the most recent recommendation for the employee (any goal)
+    rec = (
+        db.query(Recommendation)
+        .filter(Recommendation.emp_id == emp_id)
+        .filter(Recommendation.goal == "roadmap")
+        .order_by(Recommendation.last_updated_time.desc())
+        .first()
+    )
+    if not rec or not rec.output:
+        raise HTTPException(status_code=404, detail="No recommendation found for this employee")
+
+    # Try to parse the output field (assumed to be JSON)
+    try:
+        output_data = rec.output
+        if isinstance(output_data, str):
+            output_data = json.loads(output_data)
+        # Look for 'skills_after_completion' or similar key in output
+        skills = output_data.get("skills_after_completion") or output_data.get("skills") or []
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to parse recommendation output")
+
+    return {"skills_after_completion": skills}
+
 @router.get("/team/{manager_id}")
 def get_team_members(manager_id: int, db: Session = Depends(get_db)):
     try:
         # Query employees where manager_ids JSON array contains the given manager_id
+        # If manager_ids is a JSON/text field storing a list of ints, use str(manager_id)
         team_members = db.query(Employee).filter(
-            Employee.manager_ids.contains([manager_id])
+            Employee.manager_ids.contains(str(manager_id))
         ).all()
         
         if not team_members:
@@ -418,54 +449,43 @@ def get_bulk_employee_data(emp_ids: str, db: Session = Depends(get_db)):
 @router.get("/projects/manager/{emp_id}")
 def get_manager_projects(emp_id: int, db: Session = Depends(get_db)):
     """
-    Get all projects where the given employee is a manager (by manager_ids JSON field).
+    Get all project IDs where the given employee is a manager (by manager_ids JSON field).
     """
     projects = db.query(Project).filter(Project.manager_ids.contains([emp_id])).all()
     if not projects:
         return {"data": [], "message": "No managed projects found"}
-    result = []
-    for project in projects:
-        result.append({
-            "project_id": project.project_id,
-            "project_name": project.project_name,
-            "start_date": project.start_date.isoformat() if project.start_date else None,
-            "status": project.status,
-            "manager_ids": project.manager_ids,
-        })
-    return {"data": result}
+    project_ids = [project.project_id for project in projects]
+    return {"data": project_ids}
 
-@router.get("/projects/{project_id}/assignments")
-def get_project_assignments(project_id: int, db: Session = Depends(get_db)):
+@router.post("/assess-project-readiness")
+def assess_project_readiness_endpoint(data: dict, db: Session = Depends(get_db)):
     """
-    Get all team members assigned to a specific project.
+    Assess project readiness using the project readiness engine.
+    
+    Expected payload:
+    {
+        "emp_id": int,
+        "project_id": int
+    }
     """
-    assignments = (
-        db.query(EmployeeProject, Employee)
-        .join(Employee, EmployeeProject.emp_id == Employee.emp_id)
-        .filter(EmployeeProject.project_id == project_id)
-        .all()
-    )
-    if not assignments:
-        return {"data": [], "message": "No assignments found"}
-    result = []
-    for emp_proj, emp in assignments:
-        result.append({
-            "emp_id": emp.emp_id,
-            "name": emp.name,
-            "role": emp.role,
-            "assignment_role": emp_proj.role,
-            "assignment_date": getattr(emp_proj, "start_date", None),
-            "skills": emp.skills,
-        })
-    return {"data": result}
-
-@router.get("/projects/{project_id}/skills")
-def get_project_skill_requirements(project_id: int, db: Session = Depends(get_db)):
-    """
-    Get skill requirements for a specific project (from the project.skills field).
-    """
-    project = db.query(Project).filter(Project.project_id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    return {"data": project.skills or []}
-
+    try:        
+        # Validate required fields
+        emp_id = data.get('emp_id')
+        project_id = data.get('project_id')
+        
+        if not emp_id or not project_id:
+            raise HTTPException(status_code=400, detail="emp_id and project_id are required")        
+        # Run the project readiness assessment
+        result = assess_project_readiness(emp_id, project_id)
+        # Return the complete assessment result
+        return {
+            "data": result,
+            "message": "Project readiness assessment completed successfully"
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        # Handle any other errors
+        raise HTTPException(status_code=500, detail=f"Error assessing project readiness: {str(e)}")

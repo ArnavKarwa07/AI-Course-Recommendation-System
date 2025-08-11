@@ -176,7 +176,7 @@ export default function TeamMembers({
                             completedCourses={memberData.courses}
                           />
                           <div style={{ marginTop: "1rem" }}>
-                            <Skills employeeData={memberData.employee} />
+                            <Skills skills={memberData.employee.skills} />
                           </div>
                         </div>
                         <div>

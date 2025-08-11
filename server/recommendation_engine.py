@@ -20,7 +20,7 @@ load_dotenv()
 # GPT LLM
 llm = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("GPT_API_KEY"), http_client=httpx.Client(verify=False))
 
-# Database connection management
+# Database connection
 def get_db_connection():
     """Get a fresh database connection"""
     try:
@@ -105,10 +105,7 @@ def collect_user_data(state: AgentState) -> AgentState:
 
         # Get ongoing courses
         cursor.execute("""
-            SELECT oc.*, c.name as course_name, c.category
-            FROM t_ongoing_courses oc
-            JOIN m_courses c ON oc.course_id = c.course_id
-            WHERE oc.emp_id = %s
+            SELECT * FROM t_ongoing_courses WHERE emp_id = %s
         """, (emp_id,))
         emp["ongoing_courses"] = cursor.fetchall()
 
@@ -165,10 +162,6 @@ def generate_output(state: AgentState) -> AgentState:
         cursor.execute("SELECT * FROM m_courses")
         courses = cursor.fetchall()
 
-        # Get completed and ongoing course IDs for the employee
-        completed_course_ids = [course['course_id'] for course in emp.get('courses', [])]
-        ongoing_course_ids = [course['course_id'] for course in emp.get('ongoing_courses', [])]
-        excluded_course_ids = completed_course_ids + ongoing_course_ids
 
         if goal == "roadmap":
             prompt = f"""
@@ -178,9 +171,8 @@ Action: Generate a comprehensive skill development roadmap using available cours
 
 Guardrails/Guidelines:
 - Use only courses from the provided course catalog
-- CRITICAL: Do NOT recommend courses that the employee has already completed or is currently enrolled in
-- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
 - Recommend 2-4 courses from the remaining available courses
+- CRITICAL: Do NOT recommend courses that the employee has already completed or are ongoing
 - Ensure logical progression from foundational to advanced topics
 - Consider realistic timelines and employee workload
 - Prioritize courses that address critical skill gaps first
@@ -219,8 +211,6 @@ Employee Data:
 Available Courses:
 {courses}
 
-Employee's Completed Courses: {completed_course_ids}
-Employee's Ongoing Courses: {ongoing_course_ids}
 """
         else:
             prompt = f"""
@@ -230,8 +220,7 @@ Action: Recommend at least 2-4 best-fit courses from the available catalog that 
 
 Guardrails/Guidelines:
 - Select only from the provided course catalog
-- CRITICAL: Do NOT recommend courses that the employee has already completed or is currently enrolled in
-- Excluded course IDs (already completed or ongoing): {excluded_course_ids}
+- CRITICAL: Do NOT recommend courses that the employee has already completed or are ongoing
 - Recommend minimum 2 courses that address different skill areas, ideally 4-5, from the remaining available courses
 - Focus on courses that bridge the most critical skill gaps
 - The "reason" field must be exactly 2-4 words explaining the selection
@@ -256,10 +245,7 @@ Employee Data:
 {json.dumps(emp, indent=2)}
 
 Available Courses:
-{json.dumps(serialize(courses), indent=2)}
-
-Employee's Completed Courses: {completed_course_ids}
-Employee's Ongoing Courses: {ongoing_course_ids}
+{courses}
 """
 
         result = llm.invoke([HumanMessage(content=prompt)])
@@ -294,13 +280,11 @@ Action: Validate the {goal} output to ensure it meets all requirements, is appro
 
 Guardrails/Guidelines:
 - All recommended courses must exist in the provided course catalog
-- CRITICAL: None of the recommended courses should be in the employee's completed or ongoing courses
 - JSON format must be valid and complete
 - Reasoning must be 2-4 words and meaningful
 - Course progression must be logical and realistic
 - Validate against employee's current role and career level
-- For roadmap: check if skills_after_completion are realistic
-- Set valid to false if any recommended course is already completed or ongoing
+- For roadmap: check if skills_after_completion are realistic and also assume the roadmap starts after the ongoing courses are completed
 - Set valid to false only if there are critical issues
 
 Output format: Return JSON:
@@ -317,10 +301,6 @@ Employee Analysis:
 
 Employee Data:
 {json.dumps(emp, indent=2)}
-
-Employee's Completed Courses: {completed_course_ids}
-Employee's Ongoing Courses: {ongoing_course_ids}
-Excluded Course IDs: {excluded_course_ids}
 
 Output to Validate:
 {output}

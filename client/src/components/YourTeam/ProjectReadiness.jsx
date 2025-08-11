@@ -1,345 +1,903 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import {
-  getManagerProjectsAPI,
-  getProjectAssignmentsAPI,
-  getProjectSkillRequirementsAPI,
-} from "../../api/apis";
-import ProjectCard from "./ProjectReadiness/ProjectCard";
+import { getManagerProjectsAPI, getProjectAssessmentAPI } from "../../api/apis";
 
 export default function ProjectReadiness() {
   const { empId } = useAuth();
-  const [userProjects, setUserProjects] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
 
-  // Helper function to normalize skill names for comparison
-  const normalizeSkillName = (skillName) => {
-    return skillName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]/g, "");
-  };
-
-  // Helper function to process member skills - handles JSON object format
-  const processMemberSkills = (memberSkills) => {
-    const skillsMap = {};
-
-    // Handle different skill data formats
-    if (!memberSkills) {
-      return skillsMap;
-    }
-
-    // If it's already an object (JSON from database)
-    if (typeof memberSkills === "object" && !Array.isArray(memberSkills)) {
-      Object.entries(memberSkills).forEach(([skillName, proficiency]) => {
-        if (skillName && skillName.trim()) {
-          const normalized = normalizeSkillName(skillName);
-          if (normalized) {
-            skillsMap[normalized] = {
-              originalName: skillName.trim(),
-              proficiency: parseInt(proficiency) || 0,
-            };
-          }
-        }
-      });
-      return skillsMap;
-    }
-
-    // Handle array format
-    let skillsArray = [];
-    if (Array.isArray(memberSkills)) {
-      skillsArray = memberSkills;
-    } else if (typeof memberSkills === "string" && memberSkills.trim()) {
-      // Handle comma-separated string format like "JavaScript(4), Python(3)"
-      skillsArray = memberSkills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-    }
-
-    skillsArray.forEach((skill) => {
-      if (typeof skill === "string") {
-        // Parse skills like "JavaScript(4)" or "JavaScript 4"
-        const match = skill.match(/^(.+?)[\s(]*(\d+)[\s)]*$/);
-        if (match) {
-          const skillName = match[1].trim();
-          const proficiency = parseInt(match[2]) || 0;
-          const normalized = normalizeSkillName(skillName);
-          if (normalized) {
-            skillsMap[normalized] = {
-              originalName: skillName,
-              proficiency: proficiency,
-            };
-          }
-        } else {
-          // No proficiency specified, use default
-          const normalized = normalizeSkillName(skill);
-          if (normalized) {
-            skillsMap[normalized] = {
-              originalName: skill.trim(),
-              proficiency: 3, // default proficiency
-            };
-          }
-        }
-      }
-    });
-
-    return skillsMap;
-  };
-
   useEffect(() => {
-    const fetchProjectsAndAssignments = async () => {
+    const fetchProjectsData = async () => {
+      if (!empId) return;
+
       setLoading(true);
       setError(null);
 
       try {
-        const projectsRes = await getManagerProjectsAPI(empId);
+        // Get list of project IDs managed by this employee
+        const projectsResponse = await getManagerProjectsAPI(empId);
+        const projectIds = projectsResponse?.data || [];
 
-        const projects = Array.isArray(projectsRes.data)
-          ? projectsRes.data
-          : [];
+        if (projectIds.length === 0) {
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
 
-        const projectsWithDetails = await Promise.all(
-          projects.map(async (project) => {
+        // Fetch assessment data for each project
+        const projectAssessments = await Promise.all(
+          projectIds.map(async (projectId) => {
             try {
-              // Get project assignments
-              const assignmentsRes = await getProjectAssignmentsAPI(
-                project.project_id
+              const assessmentResponse = await getProjectAssessmentAPI(
+                empId,
+                projectId
               );
-
-              const assignedMembers = Array.isArray(assignmentsRes.data)
-                ? assignmentsRes.data
-                : [];
-
-              // Get required skills
-              let requiredSkills = [];
-              try {
-                const skillsRes = await getProjectSkillRequirementsAPI(
-                  project.project_id
-                );
-
-                if (Array.isArray(skillsRes.data)) {
-                  requiredSkills = skillsRes.data
-                    .map((skill) => {
-                      if (typeof skill === "object" && skill.skill_name) {
-                        return {
-                          name: skill.skill_name,
-                          required_level:
-                            skill.proficiency_level ||
-                            skill.required_level ||
-                            1,
-                        };
-                      } else if (typeof skill === "string") {
-                        return { name: skill.trim(), required_level: 1 };
-                      }
-                      return null;
-                    })
-                    .filter((skill) => skill && skill.name);
-                } else if (
-                  skillsRes.data &&
-                  typeof skillsRes.data === "object"
-                ) {
-                  // Handle when skills come as an object like {"JavaScript": 4, "Python": 3}
-                  requiredSkills = Object.entries(skillsRes.data).map(
-                    ([skillName, level]) => ({
-                      name: skillName,
-                      required_level: parseInt(level) || 1,
-                    })
-                  );
-                }
-              } catch (err) {
-                console.warn(
-                  "Skills API failed for project",
-                  project.project_id,
-                  err
-                );
-              }
-
-              // CREATE TOTAL AVAILABLE SKILLS OBJECT FROM ALL TEAM MEMBERS
-              const allAvailableSkills = {};
-
-              assignedMembers.forEach((member) => {
-                const memberSkills = processMemberSkills(member.skills);
-
-                // Add each member's skills to the total available skills
-                Object.keys(memberSkills).forEach((normalizedSkill) => {
-                  const skillData = memberSkills[normalizedSkill];
-
-                  if (!allAvailableSkills[normalizedSkill]) {
-                    allAvailableSkills[normalizedSkill] = {
-                      originalName: skillData.originalName,
-                      maxProficiency: 0,
-                      members: [],
-                    };
-                  }
-
-                  // Add this member to the skill
-                  allAvailableSkills[normalizedSkill].members.push({
-                    name: member.name,
-                    proficiency: skillData.proficiency,
-                  });
-
-                  // Update max proficiency if this member has higher skill level
-                  if (
-                    skillData.proficiency >
-                    allAvailableSkills[normalizedSkill].maxProficiency
-                  ) {
-                    allAvailableSkills[normalizedSkill].maxProficiency =
-                      skillData.proficiency;
-                  }
-                });
-              });
-
-              // ANALYZE SKILL COVERAGE WITH PARTIAL COMPLETION
-              const skillsAnalysis = requiredSkills.map((reqSkill) => {
-                const normalizedReqSkill = normalizeSkillName(reqSkill.name);
-                // Check if this skill is available in the team
-                const availableSkill = allAvailableSkills[normalizedReqSkill];
-
-                if (availableSkill) {
-                  // Calculate coverage percentage with partial completion
-                  const coveragePercentage = Math.min(
-                    100,
-                    Math.round(
-                      (availableSkill.maxProficiency /
-                        reqSkill.required_level) *
-                        100
-                    )
-                  );
-
-                  const isCovered =
-                    availableSkill.maxProficiency >= reqSkill.required_level;
-                  const proficiencyGap = Math.max(
-                    0,
-                    reqSkill.required_level - availableSkill.maxProficiency
-                  );
-
-                  return {
-                    name: reqSkill.name,
-                    required_level: reqSkill.required_level,
-                    available: availableSkill,
-                    maxAvailableProficiency: availableSkill.maxProficiency,
-                    isCovered,
-                    proficiencyGap,
-                    coveragePercentage,
-                  };
-                } else {
-                  // Skill not available at all
-                  return {
-                    name: reqSkill.name,
-                    required_level: reqSkill.required_level,
-                    available: null,
-                    maxAvailableProficiency: 0,
-                    isCovered: false,
-                    proficiencyGap: reqSkill.required_level,
-                    coveragePercentage: 0,
-                  };
-                }
-              });
-
-              // Calculate overall project readiness
-              const overallReadiness =
-                requiredSkills.length > 0
-                  ? Math.round(
-                      skillsAnalysis.reduce(
-                        (sum, skill) => sum + skill.coveragePercentage,
-                        0
-                      ) / skillsAnalysis.length
-                    )
-                  : 100; // 100% if no skills required
-
-              const skillsCoveredCount = skillsAnalysis.filter(
-                (skill) => skill.isCovered
-              ).length;
-
-              return {
-                ...project,
-                assignedMembers,
-                requiredSkills,
-                allAvailableSkills,
-                skillsAnalysis,
-                skillsCovered: skillsCoveredCount,
-                readiness: overallReadiness,
-              };
+              return assessmentResponse?.data || null;
             } catch (err) {
-              console.error(
-                "Failed to load details for project",
-                project.project_id,
-                err
-              );
+              console.error(`Failed to assess project ${projectId}:`, err);
               return null;
             }
           })
         );
 
-        setUserProjects(projectsWithDetails.filter(Boolean));
+        // Filter out failed requests
+        const validAssessments = projectAssessments.filter(Boolean);
+        setProjects(validAssessments);
       } catch (err) {
-        setError("Failed to load project data");
-        console.error("Project readiness fetch error:", err);
+        console.error("Error fetching projects:", err);
+        setError("Failed to load project data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (empId) fetchProjectsAndAssignments();
+    fetchProjectsData();
   }, [empId]);
+
+  const getReadinessColor = (score) => {
+    if (score >= 80) return "#10b981";
+    if (score >= 50) return "#f59e0b";
+    return "#ef4444";
+  };
+
+  const getReadinessStatus = (score) => {
+    if (score >= 80) return "Ready";
+    if (score >= 50) return "Partially Ready";
+    return "Not Ready";
+  };
+
+  const renderSkillsGrid = (requiredSkills) => {
+    if (!requiredSkills || Object.keys(requiredSkills).length === 0) {
+      return (
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            backgroundColor: "#f8fafc",
+            borderRadius: "0.5rem",
+            border: "2px dashed #cbd5e1",
+          }}
+        >
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}></div>
+          <p style={{ color: "#64748b", fontStyle: "italic", margin: 0 }}>
+            No specific skills required
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "0.75rem",
+        }}
+      >
+        {Object.entries(requiredSkills).map(([skill, level]) => (
+          <div
+            key={skill}
+            style={{
+              padding: "1rem",
+              backgroundColor: "#f1f5f9",
+              borderRadius: "0.5rem",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: "600",
+                fontSize: "0.95rem",
+                color: "#1e293b",
+              }}
+            >
+              {skill} : {level}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderTeamMembers = (teamMembersDetails) => {
+    if (!teamMembersDetails || Object.keys(teamMembersDetails).length === 0) {
+      return (
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            backgroundColor: "#f8fafc",
+            borderRadius: "0.5rem",
+            border: "2px dashed #cbd5e1",
+          }}
+        >
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👥</div>
+          <p style={{ color: "#64748b", fontStyle: "italic", margin: 0 }}>
+            No team members assigned
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+          gap: "1rem",
+        }}
+      >
+        {Object.entries(teamMembersDetails).map(([memberId, memberData]) => {
+          let currentSkills = {};
+          let analysis = {};
+
+          try {
+            currentSkills = JSON.parse(memberData.current_skills || "{}");
+            analysis = JSON.parse(memberData.analysis || "{}");
+          } catch (e) {
+            console.error("Error parsing member data:", e);
+          }
+
+          return (
+            <div
+              key={`member-${memberId}`}
+              style={{
+                padding: "1.25rem",
+                backgroundColor: "#ffffff",
+                borderRadius: "0.75rem",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+              }}
+            >
+              {/* Member Header */}
+              <div
+                style={{
+                  marginBottom: "1rem",
+                  borderBottom: "1px solid #f1f5f9",
+                  paddingBottom: "0.75rem",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "1.1rem",
+                    color: "#1e293b",
+                    marginBottom: "0.25rem",
+                  }}
+                >
+                  {memberData.name || `Member ${memberId}`}
+                </div>
+
+                {memberData.role && (
+                  <div
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#64748b",
+                      fontWeight: "500",
+                      backgroundColor: "#f1f5f9",
+                      padding: "0.25rem 0.5rem",
+                      borderRadius: "0.25rem",
+                      display: "inline-block",
+                    }}
+                  >
+                    {memberData.role}
+                  </div>
+                )}
+              </div>
+
+              {/* Current Skills */}
+              {Object.keys(currentSkills).length > 0 && (
+                <div style={{ marginBottom: "1rem" }}>
+                  <div
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: "600",
+                      marginBottom: "0.5rem",
+                      color: "#475569",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                    }}
+                  >
+                    Current Skills
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "0.375rem",
+                    }}
+                  >
+                    {Object.entries(currentSkills).map(([skill, level]) => (
+                      <span
+                        key={`current-${memberId}-${skill}`}
+                        style={{
+                          padding: "0.25rem 0.5rem",
+                          backgroundColor: "#dbeafe",
+                          color: "#1e40af",
+                          borderRadius: "0.375rem",
+                          fontSize: "0.7rem",
+                          fontWeight: "500",
+                          border: "1px solid #bfdbfe",
+                        }}
+                      >
+                        {skill} ({level})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Behavior Traits */}
+              {analysis.behavior_traits &&
+                analysis.behavior_traits.length > 0 && (
+                  <div style={{ marginBottom: "1rem" }}>
+                    <div
+                      style={{
+                        fontSize: "0.8rem",
+                        fontWeight: "600",
+                        marginBottom: "0.5rem",
+                        color: "#7c3aed",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                      }}
+                    >
+                      Behavior Traits
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.375rem",
+                      }}
+                    >
+                      {analysis.behavior_traits.map((trait, index) => (
+                        <span
+                          key={`trait-${memberId}-${index}`}
+                          style={{
+                            padding: "0.25rem 0.5rem",
+                            backgroundColor: "#f3e8ff",
+                            color: "#7c3aed",
+                            borderRadius: "0.375rem",
+                            fontSize: "0.7rem",
+                            fontWeight: "500",
+                            border: "1px solid #e9d5ff",
+                          }}
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderSuggestions = (suggestions, teamMembersDetails) => {
+    if (!suggestions || Object.keys(suggestions).length === 0) {
+      return null;
+    }
+
+    return (
+      <div style={{ marginTop: "1.5rem" }}>
+        <h4
+          style={{
+            margin: "0 0 1rem 0",
+            fontSize: "1.1rem",
+            fontWeight: "600",
+            color: "#1e293b",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          💡 Improvement Recommendations
+        </h4>
+
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {/* Immediate Actions */}
+          {suggestions.immediate_actions &&
+            suggestions.immediate_actions.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: "#fef2f2",
+                  padding: "1.25rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid #fecaca",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "0.95rem",
+                    marginBottom: "0.75rem",
+                    color: "#dc2626",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  🚨 Immediate Actions Required
+                </div>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: "1.25rem",
+                    listStyle: "none",
+                  }}
+                >
+                  {suggestions.immediate_actions.map((action, index) => (
+                    <li
+                      key={index}
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "#7f1d1d",
+                        marginBottom: "0.5rem",
+                        position: "relative",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          left: "-1rem",
+                          color: "#dc2626",
+                        }}
+                      >
+                        •
+                      </span>
+                      {action}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          {/* Team Courses */}
+          {suggestions.team_courses &&
+            Object.keys(suggestions.team_courses).length > 0 && (
+              <div
+                style={{
+                  backgroundColor: "#fffbeb",
+                  padding: "1.25rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid #fed7aa",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "0.95rem",
+                    marginBottom: "0.75rem",
+                    color: "#d97706",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  Recommended Courses for Team
+                </div>
+                {Object.entries(suggestions.team_courses).map(
+                  ([memberId, courses]) => {
+                    const memberName =
+                      teamMembersDetails && teamMembersDetails[memberId]
+                        ? teamMembersDetails[memberId].name
+                        : `${memberId}`;
+
+                    return (
+                      <div key={memberId} style={{ marginBottom: "1rem" }}>
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            fontWeight: "600",
+                            color: "#92400e",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          {memberName}:
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          {courses.map((course, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                padding: "0.375rem 0.75rem",
+                                backgroundColor: "#fef3c7",
+                                color: "#92400e",
+                                borderRadius: "0.5rem",
+                                fontSize: "0.75rem",
+                                fontWeight: "500",
+                                border: "1px solid #fcd34d",
+                              }}
+                            >
+                              {course}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
+          {/* Suggested Team Members */}
+          {suggestions.suggested_team_members &&
+            Array.isArray(suggestions.suggested_team_members) &&
+            suggestions.suggested_team_members.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: "#f0fdf4",
+                  padding: "1.25rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid #bbf7d0",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "0.95rem",
+                    marginBottom: "0.75rem",
+                    color: "#059669",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  Suggested Additional Team Members
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: "0.75rem",
+                  }}
+                >
+                  {suggestions.suggested_team_members.map((member, index) => (
+                    <div
+                      key={`suggested-${member.emp_id || index}`}
+                      style={{
+                        padding: "1rem",
+                        backgroundColor: "#ffffff",
+                        borderRadius: "0.5rem",
+                        border: "1px solid #d1fae5",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "0.9rem",
+                          color: "#1e293b",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        {member.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#059669",
+                          marginBottom: "0.5rem",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Employee ID: {member.emp_id}
+                      </div>
+                      {member.reason && (
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "#374151",
+                            lineHeight: "1.4",
+                            backgroundColor: "#f9fafb",
+                            padding: "0.5rem",
+                            borderRadius: "0.25rem",
+                            border: "1px solid #f3f4f6",
+                          }}
+                        >
+                          <strong>Reason:</strong> {member.reason}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+        </div>
+      </div>
+    );
+  };
+
+  const handleToggleExpand = (projectId) => {
+    setExpandedProject((prev) => (prev === projectId ? null : projectId));
+  };
 
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>
-          🔄 Loading...
-        </div>
-        <p style={{ color: "#6b7280" }}>Analyzing project readiness...</p>
+      <div style={{ padding: "3rem", textAlign: "center" }}>
+        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔄</div>
+        <p style={{ color: "#64748b", fontSize: "1.1rem" }}>
+          Analyzing project readiness...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
+      <div
+        style={{
+          padding: "3rem",
+          textAlign: "center",
+          backgroundColor: "#fef2f2",
+          borderRadius: "0.75rem",
+          border: "1px solid #fecaca",
+        }}
+      >
         <div
-          style={{ fontSize: "2rem", marginBottom: "1rem", color: "#ef4444" }}
+          style={{ fontSize: "3rem", marginBottom: "1rem", color: "#dc2626" }}
         >
-          ⚠️ Error
+          ⚠️
         </div>
-        <p style={{ color: "#ef4444" }}>{error}</p>
+        <p style={{ color: "#dc2626", fontSize: "1.1rem", fontWeight: "500" }}>
+          {error}
+        </p>
       </div>
     );
   }
 
-  if (userProjects.length === 0) {
+  if (projects.length === 0) {
     return (
-      <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📋</div>
-        <h3 style={{ color: "#6b7280", margin: "0 0 1rem 0" }}>
+      <div
+        style={{
+          padding: "4rem",
+          textAlign: "center",
+          backgroundColor: "#f8fafc",
+          borderRadius: "0.75rem",
+          border: "2px dashed #cbd5e1",
+        }}
+      >
+        <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>📋</div>
+        <h3 style={{ color: "#475569", margin: 0, fontSize: "1.5rem" }}>
           No Projects Found
         </h3>
-        <p style={{ color: "#9ca3af", margin: 0 }}>
-          You are not currently managing any projects, or your team members
-          haven't been assigned to projects yet.
+        <p style={{ color: "#64748b", margin: 0, fontSize: "1rem" }}>
+          You are not currently managing any projects.
         </p>
       </div>
     );
   }
 
   return (
-    <div>
-      {userProjects.map((project) => (
-        <ProjectCard
-          key={project.project_id}
-          project={project}
-          isExpanded={expandedProject === project.project_id}
-          onToggleExpand={() =>
-            setExpandedProject(
-              expandedProject === project.project_id ? null : project.project_id
-            )
-          }
-          processMemberSkills={processMemberSkills}
-        />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.5rem",
+        padding: "1rem",
+      }}
+    >
+      {projects.map((project) => (
+        <div
+          key={`project-${project.project_id}`}
+          style={{
+            backgroundColor: "white",
+            borderRadius: "0.75rem",
+            boxShadow: "0 2px 12px rgba(0, 0, 0, 0.06)",
+            border: "1px solid #e2e8f0",
+            overflow: "hidden",
+          }}
+        >
+          {/* Project Header */}
+          <div
+            style={{
+              padding: "1.5rem",
+              borderBottom: "1px solid #f1f5f9",
+              cursor: "pointer",
+              backgroundColor: "#f8fafc",
+            }}
+            onClick={() => handleToggleExpand(project.project_id)}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <h3
+                  style={{
+                    margin: "0 0 0.5rem 0",
+                    fontSize: "1.3rem",
+                    fontWeight: "700",
+                    color: "#1e293b",
+                    lineHeight: "1.3",
+                  }}
+                >
+                  {project.project_name}
+                </h3>
+
+                {project.project_details && (
+                  <div
+                    style={{
+                      color: "#64748b",
+                      margin: "0 0 1rem 0",
+                      fontSize: "0.9rem",
+                      backgroundColor: "#ffffff",
+                      padding: "0.75rem",
+                      borderRadius: "0.5rem",
+                      border: "1px solid #f1f5f9",
+                      width: "fit-content",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "2rem",
+                      }}
+                    >
+                      <span>
+                        <strong>Client:</strong>{" "}
+                        {project.project_details.client}
+                      </span>
+                      <span>
+                        <strong>Status:</strong>{" "}
+                        {project.project_details.status}
+                      </span>
+                      <span>
+                        <strong>Duration:</strong>{" "}
+                        {project.project_details.duration} months
+                      </span>
+                      <span>
+                        <strong>Start Date:</strong>{" "}
+                        {project.project_details.start_date}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1.5rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {/* Readiness Score */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "3.5rem",
+                        height: "3.5rem",
+                        borderRadius: "50%",
+                        backgroundColor: getReadinessColor(
+                          (project.readiness_score || 0) * 100
+                        ),
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "0.9rem",
+                        boxShadow: "0 3px 10px rgba(0,0,0,0.12)",
+                      }}
+                    >
+                      {Math.round((project.readiness_score || 0) * 100)}%
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {getReadinessStatus(
+                          (project.readiness_score || 0) * 100
+                        )}
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                        Project Readiness
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Team Size */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.3rem" }}>👥</span>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {project.team_members ? project.team_members.length : 0}{" "}
+                        Members
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                        Team Size
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Required Skills Count */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.3rem" }}>🎯</span>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {project.required_skills
+                          ? Object.keys(project.required_skills).length
+                          : 0}{" "}
+                        Skills
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                        Required
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "0.75rem",
+                  borderRadius: "0.5rem",
+                  backgroundColor: "#ffffff",
+                  transition: "transform 0.2s ease",
+                  transform:
+                    expandedProject === project.project_id
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+              >
+                ▼
+              </div>
+            </div>
+          </div>
+
+          {/* Expanded Content */}
+          {expandedProject === project.project_id && (
+            <div style={{ padding: "1.5rem", backgroundColor: "#f8fafc" }}>
+              {/* Readiness Reasoning */}
+              {project.readiness_score_reasoning && (
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h4
+                    style={{
+                      margin: "0 0 0.75rem 0",
+                      fontSize: "1.1rem",
+                      fontWeight: "600",
+                      color: "#1e293b",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    📊 Readiness Analysis
+                  </h4>
+                  <div
+                    style={{
+                      backgroundColor: "#ffffff",
+                      padding: "1rem",
+                      borderRadius: "0.5rem",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "0.9rem",
+                      color: "#374151",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    {project.readiness_score_reasoning}
+                  </div>
+                </div>
+              )}
+
+              {/* Required Skills */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <h4
+                  style={{
+                    margin: "0 0 0.75rem 0",
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    color: "#1e293b",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  🎯 Required Skills
+                </h4>
+                {renderSkillsGrid(project.required_skills)}
+              </div>
+
+              {/* Team Members */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <h4
+                  style={{
+                    margin: "0 0 0.75rem 0",
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    color: "#1e293b",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  👥 Team Members
+                </h4>
+                {renderTeamMembers(project.team_members_details)}
+              </div>
+
+              {/* Suggestions */}
+              {renderSuggestions(
+                project.suggestions,
+                project.team_members_details
+              )}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

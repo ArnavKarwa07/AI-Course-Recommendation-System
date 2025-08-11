@@ -37,22 +37,16 @@ export const getManagerProjectsAPI = async (empId) => {
   }
 };
 
-export const getProjectAssignmentsAPI = async (projectId) => {
+export const getProjectAssessmentAPI = async (empId, projectId) => {
   try {
-    const response = await http.get(`/projects/${projectId}/assignments`);
+    const response = await http.post("/assess-project-readiness", {
+      emp_id: empId,
+      project_id: projectId,
+    });
+    console.log("Project assessment response:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching project assignments:", error);
-    throw error;
-  }
-};
-
-export const getProjectSkillRequirementsAPI = async (projectId) => {
-  try {
-    const response = await http.get(`/projects/${projectId}/skills`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching project skill requirements:", error);
+    console.error("Error assessing project readiness:", error);
     throw error;
   }
 };

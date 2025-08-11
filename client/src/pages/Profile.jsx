@@ -6,6 +6,7 @@ import {
   useCourseCompletionAPI,
   useKPIAPI,
   useProjectsAPI,
+  getSkillsAfterCompletionAPI,
 } from "../api/apis";
 import ProfileHeader from "../components/Profile/ProfileHeader";
 import Skills from "../components/Shared/Skills";
@@ -21,6 +22,7 @@ export default function Profile() {
   const { getCourseCompletion } = useCourseCompletionAPI();
   const { getKPI } = useKPIAPI();
   const { getProjects } = useProjectsAPI();
+  const [skillsAfterCompletion, setSkillsAfterCompletion] = useState({});
   const [employeeData, setEmployeeData] = useState(null);
   const [completedCourses, setCompletedCourses] = useState([]);
   const [kpiData, setKpiData] = useState([]);
@@ -37,17 +39,23 @@ export default function Profile() {
           coursesResponse,
           kpiResponse,
           projectsResponse,
+          skillsAfterCompletionResponse,
         ] = await Promise.all([
           getEmployeeDetails(),
           getCourseCompletion(),
           getKPI(),
           getProjects(),
+          getSkillsAfterCompletionAPI(empId),
         ]);
 
-        console.log("Employee details response:", employeeResponse);
-        console.log("Completed courses response:", coursesResponse);
-        console.log("KPI response:", kpiResponse);
-        console.log("Projects response:", projectsResponse);
+        // console.log("Employee details response:", employeeResponse);
+        // console.log("Completed courses response:", coursesResponse);
+        // console.log("KPI response:", kpiResponse);
+        // console.log("Projects response:", projectsResponse);
+        // console.log(
+        //   "Skills after completion response:",
+        //   skillsAfterCompletionResponse
+        // );
 
         setEmployeeData(employeeResponse?.data || employeeResponse);
         setCompletedCourses(
@@ -55,6 +63,7 @@ export default function Profile() {
         );
         setKpiData(kpiResponse?.data || []);
         setProjectsData(projectsResponse?.data || []);
+        setSkillsAfterCompletion(skillsAfterCompletionResponse?.skills_after_completion || {});
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -81,6 +90,21 @@ export default function Profile() {
     );
   }
 
+  // Set the skills after completion data to be the combination of current skills and skills after completion
+  const combinedSkills = {
+    ...employeeData.skills,
+  };
+
+    Object.entries(skillsAfterCompletion).forEach(([skill, level]) => {
+    if (combinedSkills[skill]) {
+      // If skill exists, keep the higher level
+      combinedSkills[skill] = Math.max(combinedSkills[skill], level);
+    } else {
+      // If skill doesn't exist, add it
+      combinedSkills[skill] = level;
+    }
+  });
+
   return (
     <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
       {/* Header */}
@@ -94,7 +118,11 @@ export default function Profile() {
         <div>
           <PersonalInformation employeeData={employeeData} />
           <LearningProfile employeeData={employeeData} />
-          <Skills employeeData={employeeData} />
+          <Skills skills={employeeData.skills} title="Current Skills" />
+          <Skills
+            skills={combinedSkills}
+            title="Skills After Roadmap Completion"
+          />
           <CompletedCourses completedCourses={completedCourses} />
         </div>
         {/* Right Column */}

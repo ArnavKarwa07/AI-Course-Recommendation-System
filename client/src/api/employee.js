@@ -49,3 +49,13 @@ export async function getRolesAPI() {
     throw error;
   }
 }
+
+export async function getSkillsAfterCompletionAPI(empId) {
+  try {
+    const response = await http.get(`/skills_after_completion/${empId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching skills after completion:", error);
+    throw error;
+  }
+}

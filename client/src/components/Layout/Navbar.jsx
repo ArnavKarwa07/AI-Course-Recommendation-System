@@ -38,10 +38,34 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="logo">
-        <span>SkillSense AI</span>
-        <span style={{ color: "grey", fontSize: "small", fontWeight: "400" }}>
-          Powered by Harbinger Group
-        </span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+          }}
+        >
+          <img
+            src="/skillsense_ai.png"
+            style={{
+              height: "40px",
+              width: "40px",
+              objectFit: "contain",
+            }}
+          />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span>SkillSense AI</span>
+            <span
+              style={{
+                color: "grey",
+                fontSize: "small",
+                fontWeight: "400",
+              }}
+            >
+              Powered by Harbinger Group
+            </span>
+          </div>
+        </div>
       </div>
       <nav style={{ display: "flex", gap: "1rem" }}>
         <NavLink to="/" className="nav-item">

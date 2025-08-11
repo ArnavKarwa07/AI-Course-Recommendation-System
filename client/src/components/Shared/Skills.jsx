@@ -1,4 +1,4 @@
-export default function Skills({ employeeData }) {
+export default function Skills({ skills, title = "Skills" }) {
   const getSkillLevel = (level) => {
     if (level == 4) return "Expert";
     if (level >= 3) return "Advanced";
@@ -8,8 +8,8 @@ export default function Skills({ employeeData }) {
 
   return (
     <div className="card">
-      <h3 style={{ marginTop: 0 }}>Skills</h3>
-      {employeeData?.skills && Object.keys(employeeData.skills).length > 0 ? (
+      <h3 style={{ marginTop: 0 }}>{title}</h3>
+      {skills && Object.keys(skills).length > 0 ? (
         <div
           style={{
             display: "flex",
@@ -17,7 +17,7 @@ export default function Skills({ employeeData }) {
             gap: "1.5rem",
           }}
         >
-          {Object.entries(employeeData.skills).map(([skill, level]) => (
+          {Object.entries(skills).map(([skill, level]) => (
             <div key={skill}>
               <div
                 style={{
@@ -69,7 +69,7 @@ export default function Skills({ employeeData }) {
               >
                 <div
                   style={{
-                    width: `${(level / 5) * 100}%`,
+                    width: `${(level / 4) * 100}%`,
                     height: "100%",
                     backgroundColor:
                       level >= 4

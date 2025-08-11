@@ -172,7 +172,7 @@ export default function Analytics() {
 
         {/* Right Column */}
         <div>
-          <Skills employeeData={employeeDetails} />
+          <Skills skills={employeeDetails.skills} />
         </div>
       </div>
 
