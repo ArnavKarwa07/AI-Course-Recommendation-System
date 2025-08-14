@@ -101,27 +101,33 @@ export default function RecommendedCourseCard({ course }) {
             📋 Prerequisites
           </p>
           {typeof course.prerequisite_skills === "string" ? (
-            <p className="recommended-course-card-prerequisites-text">
-              {course.prerequisite_skills}
-            </p>
+            course.prerequisite_skills.trim() === "" ? (
+              <p className="recommended-course-card-prerequisites-text">None</p>
+            ) : (
+              <p className="recommended-course-card-prerequisites-text">
+                {course.prerequisite_skills}
+              </p>
+            )
           ) : typeof course.prerequisite_skills === "object" &&
             course.prerequisite_skills !== null ? (
-            <div className="recommended-course-card-prerequisites-list">
-              {Object.entries(course.prerequisite_skills).map(
-                ([skill, level]) => (
-                  <span
-                    key={skill}
-                    className="recommended-course-card-prerequisite-tag"
-                  >
-                    {skill} (Level {level})
-                  </span>
-                )
-              )}
-            </div>
+            Object.keys(course.prerequisite_skills).length === 0 ? (
+              <span className="recommended-course-card-prerequisite-tag">None</span>
+            ) : (
+              <div className="recommended-course-card-prerequisites-list">
+                {Object.entries(course.prerequisite_skills).map(
+                  ([skill, level]) => (
+                    <span
+                      key={skill}
+                      className="recommended-course-card-prerequisite-tag"
+                    >
+                      {skill} (Level {level})
+                    </span>
+                  )
+                )}
+              </div>
+            )
           ) : (
-            <p className="recommended-course-card-prerequisites-text">
-              {String(course.prerequisite_skills)}
-            </p>
+            <p className="recommended-course-card-prerequisite-tag">None</p>
           )}
         </div>
       )}

@@ -83,8 +83,7 @@
 .current-learning-journey-title {
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 1.5rem;
-  margin: 0 0 1.5rem 0;
+  margin: 0.5rem 0 1.5rem 0;
 }
 
 .current-learning-journey-loading {
@@ -108,7 +107,11 @@
 .current-learning-journey-list {
   display: flex;
   flex-direction: column;
+  border: 1px solid #0000001a;
+  border-radius: 10px;
+  background-color: rgba(211, 211, 211, 0.166);
   gap: 1.5rem;
+  padding: 10px;
 }
 
 .current-learning-journey-item-header {
