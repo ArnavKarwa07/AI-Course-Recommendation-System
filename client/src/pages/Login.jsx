@@ -11,7 +11,7 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     login(Number(value));
-    navigate("/");
+    navigate("/dashboard");
   };
 
   return (

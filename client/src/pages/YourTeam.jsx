@@ -15,6 +15,7 @@ import TeamPerformance from "../components/YourTeam/TeamPerformance";
 import TeamSkills from "../components/YourTeam/TeamSkills";
 import TeamMembers from "../components/yourteam/TeamMembers";
 import ProjectReadiness from "../components/YourTeam/ProjectReadiness";
+import "../styles/YourTeam.css";
 
 export default function YourTeam() {
   const { empId } = useAuth();
@@ -461,43 +462,6 @@ export default function YourTeam() {
     return managedProjects;
   };
 
-  // Update the useEffect to also set user projects
-  useEffect(() => {
-    const initializeData = async () => {
-      if (!empId) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Load team members and reference data
-        const [teamResponse, coursesResponse, rolesResponse] =
-          await Promise.all([
-            getTeamMembersAPI(empId),
-            getCoursesAPI(),
-            getRolesAPI(),
-          ]);
-
-        const members = teamResponse.data || [];
-        setTeamMembers(members);
-        setAvailableCourses(coursesResponse.data || []);
-        setRoles(rolesResponse.data || []);
-
-        // If we have team members, load their bulk data
-        if (members.length > 0) {
-          await loadBulkTeamMemberData(members);
-        }
-      } catch (err) {
-        console.error("Error initializing team data:", err);
-        setError("Failed to load team data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeData();
-  }, [empId]);
-
   // Add useEffect to update user projects when team data is loaded
   useEffect(() => {
     if (Object.keys(teamMembersData).length > 0) {
@@ -509,35 +473,21 @@ export default function YourTeam() {
   // Loading and Error States
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>
-          🔄 Loading...
-        </div>
-        <p style={{ color: "#6b7280" }}>Loading your team dashboard...</p>
+      <div className="your-team-loading">
+        <div className="your-team-loading-icon">🔄</div>
+        <p className="your-team-loading-text">Loading your team dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <div
-          style={{ fontSize: "2rem", marginBottom: "1rem", color: "#ef4444" }}
-        >
-          ⚠️ Error
-        </div>
-        <p style={{ color: "#ef4444" }}>{error}</p>
+      <div className="your-team-error">
+        <div className="your-team-error-icon">⚠️</div>
+        <p className="your-team-error-text">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          style={{
-            marginTop: "1rem",
-            padding: "0.75rem 1.5rem",
-            background: "#ef4444",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
+          className="your-team-retry-button"
         >
           Retry
         </button>
@@ -547,11 +497,9 @@ export default function YourTeam() {
 
   if (teamMembers.length === 0) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>
-          👥 No Team Data
-        </div>
-        <p style={{ color: "#6b7280" }}>
+      <div className="your-team-no-data">
+        <div className="your-team-no-data-icon">👥</div>
+        <p className="your-team-no-data-text">
           No team members found for your account. You may not have any direct
           reports or the data hasn't been synced yet.
         </p>
@@ -577,36 +525,16 @@ export default function YourTeam() {
   ];
 
   return (
-    <div style={{ margin: "0 0" }}>
+    <div className="your-team-container">
       {/* Navigation */}
-      <div
-        style={{
-          background: "white",
-          padding: "0.5rem",
-          borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          marginBottom: "2rem",
-          display: "flex",
-          gap: "0.5rem",
-          justifyContent: "space-around",
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="your-team-navigation">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: "0.75rem 1.25rem",
-              border: "none",
-              borderRadius: "8px",
-              background: activeTab === tab.id ? "#667eea" : "transparent",
-              color: activeTab === tab.id ? "white" : "#6b7280",
-              fontWeight: activeTab === tab.id ? "600" : "400",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              fontSize: "0.875rem",
-            }}
+            className={`your-team-tab-button ${
+              activeTab === tab.id ? "active" : ""
+            }`}
           >
             {tab.label}
           </button>
@@ -650,7 +578,7 @@ export default function YourTeam() {
         />
       )}
 
-      {activeTab === "projects" && ( // Add this section
+      {activeTab === "projects" && (
         <ProjectReadiness
           teamMembers={teamMembers}
           teamMembersData={teamMembersData}

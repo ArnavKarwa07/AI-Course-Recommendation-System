@@ -1,0 +1,577 @@
+/* Dashboard Component Styles */
+
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.card-dashboard {
+  background: #fff;
+  padding: 2em;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-dashboard .metric-number {
+  font-size: 2rem;
+  margin: 0;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.card-dashboard .metric-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #454a53;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.card-dashboard .metric-sublabel {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0;
+  margin-top: 0.25rem;
+}
+
+.card-dashboard:nth-child(1) .metric-number {
+  color: #3b82f6;
+}
+
+.card-dashboard:nth-child(2) .metric-number {
+  color: #10b981;
+}
+
+.card-dashboard:nth-child(3) .metric-number {
+  color: #8b5cf6;
+}
+
+.card-dashboard:nth-child(4) .metric-number {
+  color: #f59e0b;
+}
+/* Learning Streak Component Styles */
+.learning-streak-title {
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.learning-streak-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Current Learning Journey Component Styles */
+.current-learning-journey-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.current-learning-journey-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.current-learning-journey-error {
+  text-align: center;
+  padding: 2rem;
+  color: #ef4444;
+}
+
+.current-learning-journey-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.current-learning-journey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.current-learning-journey-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.current-learning-journey-item-info h4 {
+  margin: 0;
+  font-weight: 500;
+  color: #374151;
+}
+
+.current-learning-journey-item-category {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.current-learning-journey-item-progress {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.current-learning-journey-item-description {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.current-learning-journey-item-skills {
+  margin-top: 0.5rem;
+}
+
+.current-learning-journey-item-skills-text {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* AI Roadmap Component Styles */
+.ai-roadmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.ai-roadmap-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
+.ai-roadmap-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ai-roadmap-curated-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.ai-roadmap-refresh-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-roadmap-refresh-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.ai-roadmap-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.ai-roadmap-loading-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-roadmap-loading-text {
+  margin: 0;
+}
+
+.ai-roadmap-error {
+  text-align: center;
+  padding: 2rem;
+  background: #fee2e2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.ai-roadmap-error-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-roadmap-error-text {
+  color: #dc2626;
+  font-weight: 500;
+  margin: 0;
+}
+
+.ai-roadmap-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ai-roadmap-warning-icon {
+  font-size: 1.25rem;
+}
+
+.ai-roadmap-warning-text {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #92400e;
+}
+
+.ai-roadmap-debug {
+  text-align: center;
+  padding: 2rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.ai-roadmap-debug-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-roadmap-debug-text {
+  margin-bottom: 1rem;
+}
+
+.ai-roadmap-try-again-btn {
+  margin-top: 1rem;
+  background: #3b82f6;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ai-roadmap-try-again-btn:hover {
+  background: #1d4ed8;
+}
+
+.ai-roadmap-empty {
+  text-align: center;
+  padding: 2rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
+.ai-roadmap-empty-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-roadmap-empty-text {
+  margin-bottom: 1rem;
+}
+
+.ai-roadmap-generate-btn {
+  background: #3b82f6;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ai-roadmap-generate-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* Achievements Component Styles */
+.achievements-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+/* Recent Activity Component Styles */
+.recent-activity-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+.recent-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  background: #ddd6fe;
+  color: #5b21b6;
+}
+
+.activity-text {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.activity-time {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Learning Journey Component Styles */
+.learning-journey-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+.learning-journey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Learning streak and achievement styles */
+.learning-streak {
+  text-align: center;
+}
+
+.streak-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+  margin-bottom: 0.5rem;
+}
+
+.achievement-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.achievement-icon.gold {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.achievement-icon.purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.achievement-icon.green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.achievement-text {
+  flex: 1;
+}
+
+.achievement-title {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.achievement-desc {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Enhanced Roadmap styling */
+.roadmap-course-card {
+  position: relative;
+}
+
+.roadmap-course-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  border-radius: 12px 12px 0 0;
+}
+
+.roadmap-course-card:hover::before {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .learning-streak-title {
+    font-size: 0.9rem;
+  }
+
+  .learning-streak-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .current-learning-journey-title {
+    margin-bottom: 1rem;
+  }
+
+  .current-learning-journey-list {
+    gap: 1rem;
+  }
+
+  .current-learning-journey-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .current-learning-journey-item-progress {
+    align-self: flex-end;
+  }
+
+  .ai-roadmap-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .ai-roadmap-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ai-roadmap-title {
+    padding-left: 0;
+  }
+
+  .ai-roadmap-loading,
+  .ai-roadmap-error,
+  .ai-roadmap-debug,
+  .ai-roadmap-empty {
+    padding: 1.5rem;
+  }
+
+  .ai-roadmap-generate-btn,
+  .ai-roadmap-try-again-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .activity-item {
+    padding: 0.5rem;
+  }
+
+  .activity-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .activity-title {
+    font-size: 0.8rem;
+  }
+
+  .activity-time {
+    font-size: 0.7rem;
+  }
+}

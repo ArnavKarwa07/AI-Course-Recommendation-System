@@ -8,126 +8,67 @@ export default function TeamOverview({
   return (
     <div>
       {/* Key Metrics Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "1rem",
-        }}
-      >
-        <div
-          className="card-dashboard"
-          style={{
-            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-            color: "white",
-            padding: "1rem",
-          }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>KPI</div>
-          <div
-            className="metric-number"
-            style={{ color: "white", fontSize: "1.8rem" }}
-          >
+      <div className="team-overview-metrics-grid">
+        <div className="card-dashboard team-overview-metric-card kpi">
+          <div className="team-overview-metric-icon">KPI</div>
+          <div className="team-overview-metric-number">
             {kpiAnalytics.averageScore}
           </div>
-          <p
-            className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
-          >
+          <p className="team-overview-metric-label">
             Team Average Score
           </p>
-          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
+          <div className="team-overview-metric-detail">
             vs Benchmark: {kpiAnalytics.benchmark}
           </div>
         </div>
 
-        <div
-          className="card-dashboard"
-          style={{
-            background: "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
-            color: "white",
-            padding: "1rem",
-          }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Team</div>
-          <div
-            className="metric-number"
-            style={{ color: "white", fontSize: "1.8rem" }}
-          >
+        <div className="card-dashboard team-overview-metric-card team">
+          <div className="team-overview-metric-icon">Team</div>
+          <div className="team-overview-metric-number">
             {teamMembers.length}
           </div>
-          <p
-            className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
-          >
+          <p className="team-overview-metric-label">
             Total Members
           </p>
-          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
+          <div className="team-overview-metric-detail">
             Active Learners: {learningAnalytics.activelearners}
           </div>
         </div>
 
-        <div
-          className="card-dashboard"
-          style={{
-            background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-            color: "white",
-            padding: "1rem",
-          }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Skills</div>
-          <div
-            className="metric-number"
-            style={{ color: "white", fontSize: "1.8rem" }}
-          >
+        <div className="card-dashboard team-overview-metric-card skills">
+          <div className="team-overview-metric-icon">Skills</div>
+          <div className="team-overview-metric-number">
             {skillAnalytics.skillDistribution.length}
-          </div>
-          <p
-            className="metric-label"
-            style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.875rem" }}
-          >
+          </div>  
+          <p className="team-overview-metric-label">
             Unique Skills
           </p>
-          <div style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>
+          <div className="team-overview-metric-detail">
             Individual Gaps: {skillAnalytics.individualSkillGaps.length}
           </div>
         </div>
       </div>
 
       {/* Quick Insights */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
+      <div className="team-overview-insights-grid">
         <div className="card">
-          <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>
-            KPI Summary
-          </h3>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <h3 className="team-overview-insights-title">KPI Summary</h3>
+          <div className="team-overview-insights-content">
+            <div className="team-overview-insights-row">
               <span>High Performers (4.0+):</span>
-              <span style={{ fontWeight: "600", color: "#10b981" }}>
+              <span className="team-overview-insights-value excellent">
                 {performanceDistribution.excellent.length}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="team-overview-insights-row">
               <span>Good Performers (3.0-3.9):</span>
-              <span style={{ fontWeight: "600", color: "#f59e0b" }}>
+              <span className="team-overview-insights-value good">
                 {performanceDistribution.good.length}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="team-overview-insights-row">
               <span>Need Support (below 3.0):</span>
-              <span style={{ fontWeight: "600", color: "#ef4444" }}>
+              <span className="team-overview-insights-value poor">
                 {performanceDistribution.needsImprovement.length}
               </span>
             </div>
@@ -135,31 +76,25 @@ export default function TeamOverview({
         </div>
 
         <div className="card">
-          <h3 style={{ color: "#1f2937", marginBottom: "1rem" }}>
+          <h3 className="team-overview-insights-title">
             Learning Engagement
           </h3>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="team-overview-insights-content">
+            <div className="team-overview-insights-row">
               <span>Active Learners:</span>
-              <span style={{ fontWeight: "600", color: "#3b82f6" }}>
+              <span className="team-overview-insights-value primary">
                 {learningAnalytics.activelearners}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="team-overview-insights-row">
               <span>Engagement Rate:</span>
-              <span style={{ fontWeight: "600", color: "#3b82f6" }}>
+              <span className="team-overview-insights-value primary">
                 {learningAnalytics.engagementRate}%
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div className="team-overview-insights-row">
               <span>Average Score:</span>
-              <span style={{ fontWeight: "600", color: "#3b82f6" }}>
+              <span className="team-overview-insights-value primary">
                 {learningAnalytics.averageScore}/5.0
               </span>
             </div>

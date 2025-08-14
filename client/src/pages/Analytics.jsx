@@ -16,6 +16,7 @@ import LearningStats from "../components/Shared/LearningStats";
 import KPIDashboard from "../components/Shared/KPIDashboard";
 import MetricsGrid from "../components/analytics/MetricsGrid";
 import CareerGrowthInsights from "../components/analytics/CareerGrowthInsights";
+import "../styles/analytics.css";
 
 export default function Analytics() {
   const { empId } = useAuth();
@@ -123,32 +124,15 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "50vh",
-            flexDirection: "column",
-            gap: "1rem",
-          }}
-        >
-          <div style={{ fontSize: "2rem" }}>🤖</div>
-          <p style={{ color: "#6b7280" }}>Loading analytics data...</p>
-        </div>
-      </>
+      <div className="analytics-loading">
+        <div className="analytics-loading-icon">🤖</div>
+        <p className="analytics-loading-text">Loading analytics data...</p>
+      </div>
     );
   }
 
   return (
-    <div
-      style={{
-        padding: "1rem 2rem 2rem 2rem",
-        maxWidth: "1400px",
-        margin: "0 auto",
-      }}
-    >
+    <div className="analytics-container">
       <MetricsGrid
         averageKPI={getAverageKPI()}
         kpiDataLength={kpiData?.length}
@@ -157,14 +141,7 @@ export default function Analytics() {
       />
 
       {/* Main Content Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "2rem",
-          marginBottom: "1rem",
-        }}
-      >
+      <div className="analytics-main-grid">
         {/* Left Column */}
         <div>
           <LearningStats completedCourses={courseCompletion} />

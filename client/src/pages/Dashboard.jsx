@@ -12,6 +12,7 @@ import CurrentLearningJourney from "../components/Dashboard/CurrentLearningJourn
 import AIRoadmap from "../components/Dashboard/AIRoadmap";
 import LearningStreak from "../components/Dashboard/LearningStreak";
 import Achievements from "../components/Dashboard/Achievements";
+import "../styles/dashboard.css";
 
 export default function Dashboard() {
   const { empId } = useAuth();
@@ -152,7 +153,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Column - Individual Sidebar Components */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div className="dashboard-right-column">
           <LearningStreak />
           <Achievements />
         </div>

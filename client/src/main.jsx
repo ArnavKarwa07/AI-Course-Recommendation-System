@@ -12,7 +12,6 @@ import Analytics from "./pages/Analytics";
 import YourTeam from "./pages/YourTeam";
 
 import "./styles/globals.css";
-import "./styles/layout.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -28,7 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             element={
               <App>
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/analytics" element={<Analytics />} />

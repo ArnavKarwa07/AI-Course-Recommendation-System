@@ -7,6 +7,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import AllCourseCard from "../components/Courses/AllCourseCard";
 import RecommendedCourseCard from "../components/Courses/RecommendedCourseCard";
+import "../styles/courses.css";
 
 export default function Courses() {
   const { empId } = useAuth();
@@ -18,7 +19,7 @@ export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [recommendationsLoaded, setRecommendationsLoaded] = useState(false);
   const [recommendationError, setRecommendationError] = useState(false);
-  const [isValidRecommendation, setIsValidRecommendation] = useState(true); // Add this state
+  const [isValidRecommendation, setIsValidRecommendation] = useState(true);
 
   // Fetch all courses on component mount
   useEffect(() => {
@@ -247,48 +248,17 @@ export default function Courses() {
   };
 
   const renderRecommendationFailsafe = () => (
-    <div
-      style={{
-        textAlign: "center",
-        padding: "3rem 2rem",
-        background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-        border: "1px solid #f59e0b",
-        borderRadius: "12px",
-        margin: "2rem 0",
-        color: "#92400e",
-      }}
-    >
-      <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
-      <h3
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: "700",
-          margin: "0 0 1rem 0",
-          color: "#92400e",
-        }}
-      >
+    <div className="recommendation-failsafe">
+      <div className="recommendation-failsafe-icon">⚠️</div>
+      <h3 className="recommendation-failsafe-title">
         Unable to Load Recommended Courses
       </h3>
-      <p
-        style={{
-          fontSize: "1rem",
-          lineHeight: "1.6",
-          margin: "0 0 1.5rem 0",
-          color: "#a16207",
-        }}
-      >
+      <p className="recommendation-failsafe-text">
         We're having trouble generating personalized course recommendations for
         you right now. This could be due to limited profile data or a temporary
         service issue.
       </p>
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          justifyContent: "center",
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="recommendation-failsafe-buttons">
         <button
           onClick={() => {
             setRecommendationError(false);
@@ -296,47 +266,13 @@ export default function Courses() {
             setRecommendedCourses([]);
             handleFetchRecommended();
           }}
-          style={{
-            background: "#f59e0b",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            padding: "0.75rem 1.5rem",
-            fontSize: "0.9rem",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = "#d97706";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = "#f59e0b";
-          }}
+          className="recommendation-failsafe-button-primary"
         >
           🔄 Try Again
         </button>
         <button
           onClick={() => setActiveFilter("all")}
-          style={{
-            background: "transparent",
-            color: "#92400e",
-            border: "2px solid #f59e0b",
-            borderRadius: "8px",
-            padding: "0.75rem 1.5rem",
-            fontSize: "0.9rem",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = "#f59e0b";
-            e.target.style.color = "white";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = "transparent";
-            e.target.style.color = "#92400e";
-          }}
+          className="recommendation-failsafe-button-secondary"
         >
           📚 Browse All Courses
         </button>
@@ -346,118 +282,26 @@ export default function Courses() {
 
   return (
     <div className="courses-page">
-      <div
-        className="filter-buttons"
-        style={{
-          display: "flex",
-          gap: "0.75rem",
-          marginBottom: "1rem",
-          padding: "0.5rem",
-          borderRadius: "12px",
-          width: "fit-content",
-        }}
-      >
+      <div className="filter-buttons">
         <button
-          className={activeFilter === "all" ? "active" : ""}
+          className={`filter-button ${activeFilter === "all" ? "active" : ""}`}
           onClick={() => setActiveFilter("all")}
-          style={{
-            padding: "0.75rem 1.5rem",
-            borderRadius: "8px",
-            border: "none",
-            fontSize: "0.875rem",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            background: activeFilter === "all" ? "#3b82f6" : "transparent",
-            color: activeFilter === "all" ? "white" : "#6b7280",
-            ...(activeFilter === "all"
-              ? {
-                  boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
-                }
-              : {}),
-          }}
-          onMouseEnter={(e) => {
-            if (activeFilter !== "all") {
-              e.target.style.background = "#f1f5f9";
-              e.target.style.color = "#374151";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeFilter !== "all") {
-              e.target.style.background = "transparent";
-              e.target.style.color = "#6b7280";
-            }
-          }}
         >
           All Courses
         </button>
         <button
-          className={activeFilter === "recommended" ? "active" : ""}
+          className={`filter-button ${
+            activeFilter === "recommended" ? "active" : ""
+          }`}
           onClick={handleFetchRecommended}
-          style={{
-            padding: "0.75rem 1.5rem",
-            borderRadius: "8px",
-            border: "none",
-            fontSize: "0.875rem",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            background:
-              activeFilter === "recommended" ? "#3b82f6" : "transparent",
-            color: activeFilter === "recommended" ? "white" : "#6b7280",
-            ...(activeFilter === "recommended"
-              ? {
-                  boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
-                }
-              : {}),
-          }}
-          onMouseEnter={(e) => {
-            if (activeFilter !== "recommended") {
-              e.target.style.background = "#f1f5f9";
-              e.target.style.color = "#374151";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeFilter !== "recommended") {
-              e.target.style.background = "transparent";
-              e.target.style.color = "#6b7280";
-            }
-          }}
         >
           AI Recommended Courses
         </button>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: "absolute",
-            right: "30px",
-          }}
-        >
+        <div className="refresh-button-container">
           {recommendationsLoaded && recommendedCourses.length > 0 && (
             <button
               onClick={handleRefreshRecommended}
-              style={{
-                background: "transparent",
-                border: "1px solid #d1d5db",
-                borderRadius: "6px",
-                padding: "0.5rem",
-                cursor: "pointer",
-                color: "#6b7280",
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = "#f9fafb";
-                e.target.style.borderColor = "#9ca3af";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = "transparent";
-                e.target.style.borderColor = "#d1d5db";
-              }}
+              className="refresh-button"
               title="Refresh Course Recommendations"
             >
               🔄
@@ -467,14 +311,8 @@ export default function Courses() {
       </div>
 
       {loading ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "2rem",
-            color: "#6b7280",
-          }}
-        >
-          <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🤖</div>
+        <div className="courses-loading">
+          <div className="courses-loading-icon">🤖</div>
           <p>Loading courses...</p>
         </div>
       ) : (
@@ -488,40 +326,16 @@ export default function Courses() {
               {activeFilter === "recommended" &&
                 recommendedCourses.length > 0 &&
                 !isValidRecommendation && (
-                  <div
-                    style={{
-                      background: "#fef3c7",
-                      border: "1px solid #f59e0b",
-                      borderRadius: "8px",
-                      padding: "0.75rem",
-                      marginBottom: "1rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+                  <div className="recommendation-disclaimer">
+                    <span className="recommendation-disclaimer-icon">⚠️</span>
                     <div>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: "0.75rem",
-                          color: "#92400e",
-                        }}
-                      >
+                      <p className="recommendation-disclaimer-text">
                         These course recommendations may not be fully accurate
                       </p>
                     </div>
                   </div>
                 )}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                  gap: "1rem",
-                  marginTop: "1rem",
-                }}
-              >
+              <div className="courses-grid">
                 {(activeFilter === "all" ? allCourses : recommendedCourses).map(
                   renderCourseCard
                 )}

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatAPI } from "../../api/apis";
 import SendIcon from "@mui/icons-material/Send";
-import "./ChatBot.css";
+import "../../styles/ChatBot.css";
 
 export default function ChatBot() {
   const { sendMessage: sendChatMessage } = useChatAPI();

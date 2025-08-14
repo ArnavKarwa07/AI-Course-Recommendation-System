@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
 import { getTeamMembersAPI } from "../../api/apis";
-import "./Navbar.css";
+import "../../styles/Navbar.css";
 import HomeIcon from "@mui/icons-material/Home";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
@@ -68,7 +68,7 @@ export default function Navbar() {
         </div>
       </div>
       <nav style={{ display: "flex", gap: "1rem" }}>
-        <NavLink to="/" className="nav-item">
+        <NavLink to="/dashboard" className="nav-item">
           <HomeIcon />
           Dashboard
         </NavLink>

@@ -186,166 +186,51 @@ export default function TeamSkills({
   return (
     <div>
       {/* Skills Bubble Chart */}
-      <div className="card" style={{ marginBottom: "2rem" }}>
-        <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-          Team Skills Distribution
-        </h3>
-        <div
-          ref={containerRef}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            background: "#f8fafc",
-            borderRadius: "12px",
-            padding: "8px", // Minimal padding
-            width: "100%",
-            overflow: "hidden", // Prevent overflow
-            boxSizing: "border-box", // Include padding in width calculation
-          }}
-        >
-          <svg
-            ref={svgRef}
-            style={{
-              width: "100%", // Use full container width
-              height: "auto",
-              maxWidth: "100%", // Ensure it doesn't exceed container
-              display: "block", // Remove default inline spacing
-            }}
-          ></svg>
+      <div className="card team-skills-card">
+        <h3 className="team-skills-title">Team Skills Distribution</h3>
+        <div ref={containerRef} className="team-skills-chart-container">
+          <svg ref={svgRef} className="team-skills-chart-svg"></svg>
         </div>
 
         {/* Responsive Legend */}
-        <div
-          style={{
-            marginTop: "1rem",
-            display: "flex",
-            justifyContent: "center",
-            gap: window.innerWidth < 768 ? "1rem" : "2rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div
-              style={{
-                width: window.innerWidth < 768 ? "16px" : "20px",
-                height: window.innerWidth < 768 ? "16px" : "20px",
-                borderRadius: "50%",
-                background: "#10b981",
-              }}
-            ></div>
-            <span
-              style={{
-                fontSize: window.innerWidth < 768 ? "0.75rem" : "0.875rem",
-              }}
-            >
-              Expert Level (4.0)
-            </span>
+        <div className="team-skills-legend">
+          <div className="team-skills-legend-item">
+            <div className="team-skills-legend-circle expert"></div>
+            <span className="team-skills-legend-text">Expert Level (4.0)</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div
-              style={{
-                width: window.innerWidth < 768 ? "16px" : "20px",
-                height: window.innerWidth < 768 ? "16px" : "20px",
-                borderRadius: "50%",
-                background: "#f59e0b",
-              }}
-            ></div>
-            <span
-              style={{
-                fontSize: window.innerWidth < 768 ? "0.75rem" : "0.875rem",
-              }}
-            >
+          <div className="team-skills-legend-item">
+            <div className="team-skills-legend-circle intermediate"></div>
+            <span className="team-skills-legend-text">
               Intermediate (3.0-3.9)
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div
-              style={{
-                width: window.innerWidth < 768 ? "16px" : "20px",
-                height: window.innerWidth < 768 ? "16px" : "20px",
-                borderRadius: "50%",
-                background: "#ef4444",
-              }}
-            ></div>
-            <span
-              style={{
-                fontSize: window.innerWidth < 768 ? "0.75rem" : "0.875rem",
-              }}
-            >
+          <div className="team-skills-legend-item">
+            <div className="team-skills-legend-circle beginner"></div>
+            <span className="team-skills-legend-text">
               Beginner (Below 3.0)
             </span>
           </div>
         </div>
 
         {/* Chart Description */}
-        <div
-          style={{
-            marginTop: "1rem",
-            textAlign: "center",
-            fontSize: window.innerWidth < 768 ? "0.75rem" : "0.875rem",
-            color: "#6b7280",
-            fontStyle: "italic",
-          }}
-        >
+        <div className="team-skills-chart-description">
           Bubble size represents skill coverage • Hover for detailed information
         </div>
       </div>
 
       {/* AI Identified Skill Gaps */}
       <div className="card">
-        <h3 style={{ color: "#1f2937", marginBottom: "1.5rem" }}>
-          AI Identified Skill Gaps
-        </h3>
+        <h3 className="team-skills-gaps-title">AI Identified Skill Gaps</h3>
         {skillAnalytics.individualSkillGaps.length > 0 ? (
-          <div
-            style={{
-              display: "grid",
-              gap: "1rem",
-              maxHeight: "600px",
-              overflowY: "auto",
-            }}
-          >
+          <div className="team-skills-gaps-container">
             {skillAnalytics.individualSkillGaps.map((member, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "1.5rem",
-                  background: "#fefbf2",
-                  border: "1px solid #fed7aa",
-                  borderRadius: "12px",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: "600",
-                    color: "#92400e",
-                    marginBottom: "1rem",
-                    fontSize: "1.1rem",
-                  }}
-                >
+              <div key={index} className="team-skills-gap-card">
+                <div className="team-skills-gap-member">
                   {member.name} ({member.role})
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.5rem",
-                  }}
-                >
+                <div className="team-skills-gap-skills">
                   {member.gaps.map((gap, gapIndex) => (
-                    <span
-                      key={gapIndex}
-                      style={{
-                        padding: "0.5rem 1rem",
-                        background: "#ffffff",
-                        border: "1px solid #fed7aa",
-                        borderRadius: "20px",
-                        fontSize: "0.875rem",
-                        fontWeight: "500",
-                        color: "#92400e",
-                        display: "inline-block",
-                      }}
-                    >
+                    <span key={gapIndex} className="team-skills-gap-skill">
                       {gap.skill}
                     </span>
                   ))}
@@ -354,21 +239,12 @@ export default function TeamSkills({
             ))}
           </div>
         ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "3rem",
-              color: "#059669",
-              background: "#f0fdf4",
-              border: "1px solid #bbf7d0",
-              borderRadius: "12px",
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✅</div>
-            <h4 style={{ margin: "0 0 0.5rem 0", color: "#059669" }}>
+          <div className="team-skills-no-gaps">
+            <div className="team-skills-no-gaps-icon">✅</div>
+            <h4 className="team-skills-no-gaps-title">
               No Skill Gaps Identified
             </h4>
-            <p style={{ margin: 0, color: "#065f46" }}>
+            <p className="team-skills-no-gaps-text">
               All team members meet the required skill levels for their roles
             </p>
           </div>

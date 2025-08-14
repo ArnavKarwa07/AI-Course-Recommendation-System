@@ -6,37 +6,12 @@ export default function AIRoadmap({
   onRefresh,
   onGenerate,
 }) {
-
   return (
     <div className="card">
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1.5rem",
-        }}
-      >
-        <h2
-          style={{
-            fontWeight: "600",
-            color: "#1f2937",
-            margin: 0,
-            paddingLeft: "0.5rem",
-          }}
-        >
-          AI Roadmap
-        </h2>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <span
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              fontStyle: "italic",
-            }}
-          >
-            SkillSense AI Curated
-          </span>
+      <div className="ai-roadmap-header">
+        <h2 className="ai-roadmap-title">AI Roadmap</h2>
+        <div className="ai-roadmap-header-actions">
+          <span className="ai-roadmap-curated-text">SkillSense AI Curated</span>
           {roadmapData &&
             (() => {
               // Check for all possible roadmap structures
@@ -50,26 +25,7 @@ export default function AIRoadmap({
             })() && (
               <button
                 onClick={onRefresh}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "6px",
-                  padding: "0.5rem",
-                  cursor: "pointer",
-                  color: "#6b7280",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "#f9fafb";
-                  e.target.style.borderColor = "#9ca3af";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "transparent";
-                  e.target.style.borderColor = "#d1d5db";
-                }}
+                className="ai-roadmap-refresh-btn"
                 title="Refresh AI Roadmap"
               >
                 🔄
@@ -79,15 +35,11 @@ export default function AIRoadmap({
       </div>
 
       {isLoading ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "2rem",
-            color: "#6b7280",
-          }}
-        >
-          <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🤖</div>
-          <p>AI is analyzing your learning path...</p>
+        <div className="ai-roadmap-loading">
+          <div className="ai-roadmap-loading-icon">🤖</div>
+          <p className="ai-roadmap-loading-text">
+            AI is analyzing your learning path...
+          </p>
         </div>
       ) : roadmapData ? (
         // Check for different data structures
@@ -102,21 +54,9 @@ export default function AIRoadmap({
 
           if (roadmapData.error) {
             return (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "2rem",
-                  background: "#fee2e2",
-                  borderRadius: "8px",
-                  border: "1px solid #fecaca",
-                }}
-              >
-                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
-                  ⚠️
-                </div>
-                <p style={{ color: "#dc2626", fontWeight: "500" }}>
-                  {roadmapData.error}
-                </p>
+              <div className="ai-roadmap-error">
+                <div className="ai-roadmap-error-icon">⚠️</div>
+                <p className="ai-roadmap-error-text">{roadmapData.error}</p>
               </div>
             );
           }
@@ -152,27 +92,10 @@ export default function AIRoadmap({
               <div>
                 {/* Warning message for invalid roadmap */}
                 {!roadmapData.valid && (
-                  <div
-                    style={{
-                      background: "#fef3c7",
-                      border: "1px solid #f59e0b",
-                      borderRadius: "8px",
-                      padding: "0.75rem",
-                      marginBottom: "1rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.25rem" }}>⚠️</span>
+                  <div className="ai-roadmap-warning">
+                    <span className="ai-roadmap-warning-icon">⚠️</span>
                     <div>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: "0.75rem",
-                          color: "#92400e",
-                        }}
-                      >
+                      <p className="ai-roadmap-warning-text">
                         This roadmap may not be fully accurate
                       </p>
                     </div>
@@ -186,77 +109,24 @@ export default function AIRoadmap({
 
           // If no valid roadmap structure found, show debug info
           return (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "2rem",
-                background: "#f3f4f6",
-                borderRadius: "8px",
-                color: "#6b7280",
-              }}
-            >
-              <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
-                🔍
-              </div>
-              <p style={{ marginBottom: "1rem" }}>
+            <div className="ai-roadmap-debug">
+              <div className="ai-roadmap-debug-icon">🔍</div>
+              <p className="ai-roadmap-debug-text">
                 Roadmap data received but structure not recognized
               </p>
-              <button
-                onClick={onGenerate}
-                style={{
-                  marginTop: "1rem",
-                  background: "#3b82f6",
-                  color: "white",
-                  padding: "0.75rem 1.5rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                }}
-              >
+              <button onClick={onGenerate} className="ai-roadmap-try-again-btn">
                 Try Generate Again
               </button>
             </div>
           );
         })()
       ) : (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "2rem",
-            background: "#f3f4f6",
-            borderRadius: "8px",
-            color: "#6b7280",
-          }}
-        >
-          <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🤖</div>
-          <p style={{ marginBottom: "1rem" }}>
+        <div className="ai-roadmap-empty">
+          <div className="ai-roadmap-empty-icon">🤖</div>
+          <p className="ai-roadmap-empty-text">
             Ready to discover your personalized learning path?
           </p>
-          <button
-            className="btn-primary"
-            onClick={onGenerate}
-            style={{
-              background: "#3b82f6",
-              color: "white",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#1d4ed8";
-              e.target.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "#3b82f6";
-              e.target.style.transform = "translateY(0)";
-            }}
-          >
+          <button className="ai-roadmap-generate-btn" onClick={onGenerate}>
             Generate AI Roadmap
           </button>
         </div>

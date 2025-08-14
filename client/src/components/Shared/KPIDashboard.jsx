@@ -13,7 +13,7 @@ const KPIDashboard = ({ kpiData }) => {
             margin: "0 0 1.5rem 0",
           }}
         >
-          📊 KPI Performance Dashboard
+          KPI Performance Dashboard
         </h2>
         <div
           style={{

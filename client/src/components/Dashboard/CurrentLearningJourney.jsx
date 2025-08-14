@@ -60,16 +60,10 @@ export default function CurrentLearningJourney({
   if (loading) {
     return (
       <div className="card">
-        <h2
-          style={{
-            fontWeight: "600",
-            color: "#1f2937",
-            marginBottom: "1.5rem",
-          }}
-        >
+        <h2 className="current-learning-journey-title">
           Current Learning Journey
         </h2>
-        <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+        <div className="current-learning-journey-loading">
           Loading your ongoing courses...
         </div>
       </div>
@@ -79,18 +73,10 @@ export default function CurrentLearningJourney({
   if (error) {
     return (
       <div className="card">
-        <h2
-          style={{
-            fontWeight: "600",
-            color: "#1f2937",
-            marginBottom: "1.5rem",
-          }}
-        >
+        <h2 className="current-learning-journey-title">
           Current Learning Journey
         </h2>
-        <div style={{ textAlign: "center", padding: "2rem", color: "#ef4444" }}>
-          {error}
-        </div>
+        <div className="current-learning-journey-error">{error}</div>
       </div>
     );
   }
@@ -98,16 +84,10 @@ export default function CurrentLearningJourney({
   if (learningItems.length === 0) {
     return (
       <div className="card">
-        <h2
-          style={{
-            fontWeight: "600",
-            color: "#1f2937",
-            marginBottom: "1.5rem",
-          }}
-        >
+        <h2 className="current-learning-journey-title">
           Current Learning Journey
         </h2>
-        <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+        <div className="current-learning-journey-empty">
           No ongoing courses found. Start a new course to see your progress
           here!
         </div>
@@ -117,60 +97,31 @@ export default function CurrentLearningJourney({
 
   return (
     <div className="card">
-      <h2
-        style={{ fontWeight: "600", color: "#1f2937", marginBottom: "1.5rem" }}
-      >
+      <h2 className="current-learning-journey-title">
         Current Learning Journey
       </h2>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <div className="current-learning-journey-list">
         {learningItems.map((item, index) => (
           <div key={item.courseId || index} className="learning-item">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <div>
-                <h4 style={{ margin: 0, fontWeight: "500", color: "#374151" }}>
-                  {item.title}
-                </h4>
-                <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+            <div className="current-learning-journey-item-header">
+              <div className="current-learning-journey-item-info">
+                <h4>{item.title}</h4>
+                <span className="current-learning-journey-item-category">
                   {item.category}
                 </span>
               </div>
-              <span
-                style={{
-                  fontSize: "0.875rem",
-                  fontWeight: "600",
-                  color: "#3b82f6",
-                }}
-              >
+              <span className="current-learning-journey-item-progress">
                 {item.progress}%
               </span>
             </div>
             <ProgressBar percent={item.progress} />
-            <p
-              style={{
-                margin: "0.5rem 0 0 0",
-                fontSize: "0.75rem",
-                color: "#6b7280",
-              }}
-            >
+            <p className="current-learning-journey-item-description">
               {item.description}
             </p>
             {item.skills && formatSkills(item.skills) && (
-              <div style={{ marginTop: "0.5rem" }}>
-                <span
-                  style={{
-                    fontSize: "0.7rem",
-                    color: "#9ca3af",
-                    fontWeight: "500",
-                  }}
-                >
+              <div className="current-learning-journey-item-skills">
+                <span className="current-learning-journey-item-skills-text">
                   Skills: {formatSkills(item.skills)}
                 </span>
               </div>

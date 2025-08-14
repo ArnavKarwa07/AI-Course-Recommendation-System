@@ -9,15 +9,7 @@ export default function MetricsGrid({
   behaviorTraits,
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: "1.5rem",
-        marginBottom: "1rem",
-        textAlign: "center",
-      }}
-    >
+    <div className="metrics-grid">
       <PerformanceScoreCard
         averageKPI={averageKPI}
         kpiDataLength={kpiDataLength}

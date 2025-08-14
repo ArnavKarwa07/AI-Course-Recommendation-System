@@ -15,6 +15,7 @@ import PersonalInformation from "../components/Profile/PersonalInformation";
 import LearningProfile from "../components/Profile/LearningProfile";
 import KPIs from "../components/Profile/KPIs";
 import CompletedCourses from "../components/Profile/CompletedCourses";
+import "../styles/profile.css";
 
 export default function Profile() {
   const { empId } = useAuth();
@@ -63,7 +64,9 @@ export default function Profile() {
         );
         setKpiData(kpiResponse?.data || []);
         setProjectsData(projectsResponse?.data || []);
-        setSkillsAfterCompletion(skillsAfterCompletionResponse?.skills_after_completion || {});
+        setSkillsAfterCompletion(
+          skillsAfterCompletionResponse?.skills_after_completion || {}
+        );
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -76,7 +79,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
+      <div className="profile-loading">
         <p>Loading profile...</p>
       </div>
     );
@@ -84,7 +87,7 @@ export default function Profile() {
 
   if (!employeeData) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
+      <div className="profile-error">
         <p>Unable to load employee data</p>
       </div>
     );
@@ -95,7 +98,7 @@ export default function Profile() {
     ...employeeData.skills,
   };
 
-    Object.entries(skillsAfterCompletion).forEach(([skill, level]) => {
+  Object.entries(skillsAfterCompletion).forEach(([skill, level]) => {
     if (combinedSkills[skill]) {
       // If skill exists, keep the higher level
       combinedSkills[skill] = Math.max(combinedSkills[skill], level);
@@ -106,16 +109,14 @@ export default function Profile() {
   });
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+    <div className="profile-container">
       {/* Header */}
       <ProfileHeader employeeData={employeeData} />
 
       {/* Main Content Grid */}
-      <div
-        style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "2rem" }}
-      >
+      <div className="profile-main-grid">
         {/* Left Column */}
-        <div>
+        <div className="profile-left-column">
           <PersonalInformation employeeData={employeeData} />
           <LearningProfile employeeData={employeeData} />
           <Skills skills={employeeData.skills} title="Current Skills" />
@@ -126,7 +127,7 @@ export default function Profile() {
           <CompletedCourses completedCourses={completedCourses} />
         </div>
         {/* Right Column */}
-        <div>
+        <div className="profile-right-column">
           <KPIs kpiData={kpiData} />
           <Projects projectsData={projectsData} />
         </div>
